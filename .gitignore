@@ -1,0 +1,22 @@
+# Interview recordings and uploaded CVs are personal data. Never commit them.
+web/storage/app/recordings/
+web/storage/app/private/recordings/
+web/storage/app/cvs/
+web/storage/app/private/cvs/
+
+# ASR service
+asr/.venv/
+asr/models/
+asr/__pycache__/
+**/__pycache__/
+*.pyc
+
+# Raw experiment audio is large and may contain participant voices; keep it out of git.
+docs/experiments/raw/audio/
+docs/user-testing/responses/audio/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+/.idea
+/.vscode
