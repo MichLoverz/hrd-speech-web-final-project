@@ -1,0 +1,221 @@
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/400-italic.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/600.css';
+@import '@fontsource/courier-prime/400.css';
+@import '@fontsource/courier-prime/700.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Base. Everything sits on "paper"; content lives on a white "sheet".
+ * Structure is carried by 1px rules, never by shadows.
+ */
+@layer base {
+    html {
+        @apply bg-paper text-ink antialiased;
+    }
+
+    body {
+        @apply font-sans text-base;
+        font-feature-settings: 'tnum' 1;
+    }
+
+    h1 {
+        @apply text-xl font-semibold text-ink tracking-tight;
+    }
+
+    h2 {
+        @apply text-lg font-semibold text-ink;
+    }
+
+    h3 {
+        @apply text-md font-semibold text-ink;
+    }
+
+    a {
+        @apply underline underline-offset-2 decoration-pencil-light hover:decoration-ink;
+    }
+
+    :focus-visible {
+        @apply outline outline-2 outline-offset-2 outline-ink;
+    }
+
+    ::selection {
+        @apply bg-highlighter text-ink;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+}
+
+@layer components {
+    /* The sheet: one white surface per page, edged by a rule, no shadow. */
+    .sheet {
+        @apply bg-sheet border border-rule mx-auto w-full max-w-sheet;
+    }
+
+    .sheet-section {
+        @apply px-5 py-6 sm:px-8;
+    }
+
+    .sheet-section + .sheet-section {
+        @apply border-t border-rule;
+    }
+
+    /* Ledger: a table with horizontal rules only. */
+    .ledger {
+        @apply w-full text-left border-collapse;
+    }
+
+    .ledger th {
+        @apply text-sm font-semibold text-ink-soft pb-2 pr-4 border-b border-ink align-bottom;
+    }
+
+    .ledger td {
+        @apply py-3 pr-4 border-b border-rule align-top;
+    }
+
+    .ledger tr:last-child td {
+        @apply border-b-0;
+    }
+
+    .ledger a {
+        @apply no-underline hover:underline;
+    }
+
+    /* Buttons. Primary is ink; quiet is outlined; danger is reserved for deletion. */
+    .btn {
+        @apply inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded border
+               cursor-pointer no-underline select-none whitespace-nowrap
+               disabled:opacity-50 disabled:cursor-not-allowed;
+    }
+
+    .btn-primary {
+        @apply btn bg-ink border-ink text-sheet hover:bg-ink-soft hover:border-ink-soft;
+    }
+
+    .btn-quiet {
+        @apply btn bg-transparent border-ink text-ink hover:bg-paper;
+    }
+
+    .btn-danger {
+        @apply btn bg-transparent border-danger text-danger hover:bg-danger hover:text-sheet;
+    }
+
+    .btn-link {
+        @apply inline text-sm font-semibold text-ink underline underline-offset-2 bg-transparent border-0 p-0 cursor-pointer;
+    }
+
+    /* Row-level actions (edit / delete on a list item): quiet until hovered. */
+    .row-action {
+        @apply inline text-sm font-normal text-pencil no-underline bg-transparent border-0 p-0 cursor-pointer
+               hover:text-ink hover:underline underline-offset-2;
+    }
+
+    .row-action-danger {
+        @apply row-action hover:text-danger;
+    }
+
+    /* Form fields: label above, one column, generous vertical rhythm. */
+    .field {
+        @apply block;
+    }
+
+    .field + .field {
+        @apply mt-5;
+    }
+
+    .field-label {
+        @apply block text-sm font-semibold text-ink mb-1;
+    }
+
+    .field-hint {
+        @apply block text-sm text-pencil mt-1;
+    }
+
+    .field-error {
+        @apply block text-sm text-danger mt-1;
+    }
+
+    .field-input {
+        @apply form-input block w-full rounded border-rule bg-sheet text-ink text-base px-3 py-2
+               placeholder:text-pencil-light
+               focus:border-ink focus:ring-0;
+    }
+
+    .field-input[aria-invalid="true"] {
+        @apply border-danger;
+    }
+
+    .field-select {
+        @apply form-select block w-full rounded border-rule bg-sheet text-ink text-base pl-3 pr-9 py-2
+               focus:border-ink focus:ring-0;
+    }
+
+    .field-textarea {
+        @apply form-textarea block w-full rounded border-rule bg-sheet text-ink text-base px-3 py-2
+               placeholder:text-pencil-light
+               focus:border-ink focus:ring-0;
+    }
+
+    .field-checkbox {
+        @apply form-checkbox rounded border-rule text-ink focus:ring-0 focus:ring-offset-0;
+    }
+
+    /* Status words: plain text with a small ink/pencil/stamp dot; no pills. */
+    .status {
+        @apply inline-flex items-center gap-2 text-sm;
+    }
+
+    .status::before {
+        content: '';
+        @apply inline-block w-2 h-2 rounded-full bg-pencil-light;
+    }
+
+    .status-active::before {
+        @apply bg-ink;
+    }
+
+    .status-done::before {
+        @apply bg-stamp;
+    }
+
+    .status-warn::before {
+        @apply bg-highlighter border border-ink;
+    }
+
+    /* Transcript block: the typed record. Provisional text is pencil, final text is ink. */
+    .transcript {
+        @apply font-transcript text-md leading-relaxed text-ink whitespace-pre-wrap max-w-prose;
+    }
+
+    .transcript-partial {
+        @apply text-pencil;
+    }
+
+    /* Evidence: a highlighter stroke through the quoted transcript. */
+    .highlight {
+        @apply bg-highlighter text-ink px-0.5 -mx-0.5 rounded-none;
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
+    }
+
+    /* Flash message after an action. */
+    .notice {
+        @apply px-4 py-3 border border-ink bg-sheet text-sm;
+    }
+
+    /* Empty state: an invitation, not a mood. */
+    .empty {
+        @apply py-10 text-center text-pencil;
+    }
+}
+
+[x-cloak] { display: none !important; }
