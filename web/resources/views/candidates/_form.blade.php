@@ -16,7 +16,7 @@
     <input id="name" name="name" type="text" value="{{ old('name', $candidate->name) }}" class="field-input" required maxlength="150">
 </x-field>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5">
+<div class="field grid grid-cols-1 sm:grid-cols-2 gap-5 items-start [&>.field]:mt-0">
     <x-field name="email" label="Email">
         <input id="email" name="email" type="email" value="{{ old('email', $candidate->email) }}" class="field-input" maxlength="150">
     </x-field>
@@ -25,8 +25,8 @@
     </x-field>
 </div>
 
-<x-field name="expected_salary" label="Ekspektasi gaji (Rp)" hint="Angka ini hanya dibandingkan dengan rentang anggaran lowongan.">
-    <input id="expected_salary" name="expected_salary" type="number" min="0" step="100000" value="{{ old('expected_salary', $candidate->expected_salary) }}" class="field-input">
+<x-field name="expected_salary" label="Ekspektasi gaji" hint="Angka ini hanya dibandingkan dengan rentang anggaran lowongan.">
+    <x-money-input name="expected_salary" :value="old('expected_salary', $candidate->expected_salary)" />
 </x-field>
 
 <x-field name="cv" label="Berkas CV" :hint="$candidate->cv_path ? 'Sudah ada CV tersimpan. Unggah berkas baru untuk menggantinya.' : 'PDF, maksimum 5 MB.'">

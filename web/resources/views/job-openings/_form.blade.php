@@ -13,12 +13,12 @@
     <textarea id="description" name="description" rows="4" class="field-textarea" maxlength="5000">{{ old('description', $opening->description) }}</textarea>
 </x-field>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5">
-    <x-field name="salary_min" label="Gaji minimum (Rp)" hint="Dipakai untuk membandingkan ekspektasi kandidat, bukan untuk menilai kandidat.">
-        <input id="salary_min" name="salary_min" type="number" min="0" step="100000" value="{{ old('salary_min', $opening->salary_min) }}" class="field-input">
+<div class="field grid grid-cols-1 sm:grid-cols-2 gap-5 items-start [&>.field]:mt-0">
+    <x-field name="salary_min" label="Gaji minimum" hint="Dipakai untuk membandingkan ekspektasi kandidat, bukan untuk menilai kandidat.">
+        <x-money-input name="salary_min" :value="old('salary_min', $opening->salary_min)" />
     </x-field>
-    <x-field name="salary_max" label="Gaji maksimum (Rp)">
-        <input id="salary_max" name="salary_max" type="number" min="0" step="100000" value="{{ old('salary_max', $opening->salary_max) }}" class="field-input">
+    <x-field name="salary_max" label="Gaji maksimum">
+        <x-money-input name="salary_max" :value="old('salary_max', $opening->salary_max)" />
     </x-field>
 </div>
 
