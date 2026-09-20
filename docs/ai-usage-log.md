@@ -1,0 +1,17 @@
+# AI Usage Log — HireNote
+
+Diperbarui setiap sesi kerja. Format mengikuti §21.2 ketentuan Final Project COMP6822001. Kolom *Student Verification* diisi oleh mahasiswa setelah benar-benar menguji; baris yang bertanda **[belum diverifikasi]** belum boleh dianggap selesai.
+
+| No | AI Tool | Purpose | Prompt/Instruction Summary | Output Used | Student Verification |
+|---|---|---|---|---|---|
+| 1 | Claude Code (Opus 5, VS Code) | Perencanaan | Membaca brief proyek + form ketentuan mata kuliah, diminta menyusun rencana Fase 0, asumsi, dan pertanyaan | Dipakai sebagai kerangka kerja | Rencana ditinjau; keputusan DB diubah dari PostgreSQL ke MariaDB, WSL dibatalkan, setelah mahasiswa menyampaikan kondisi mesin (2026-09-21) |
+| 2 | Claude Code | Rekomendasi ukuran model ASR | Diberi spesifikasi dxdiag (Ryzen 5 6600H, 16 GB, tanpa dGPU), diminta rekomendasi model | Dipakai sebagai rencana awal: `small` untuk live, `medium` offline | **[belum diverifikasi]** Angka RTF yang disebut AI hanya perkiraan; harus diukur sendiri di Fase 2 dan dicatat di `docs/experiments/raw/` |
+| 3 | Claude Code | Coding: migration + model Eloquent (13 tabel, 11 model) | Diminta mengimplementasikan skema dari brief; AI mengusulkan `position` alih-alih `order`, kolom `e2e_latency_ms` tambahan, dan `is_verified` di `evidence_quotes` | Dipakai | Diverifikasi lewat `php artisan migrate:fresh --seed` di MariaDB dan `tinker` (relasi hasManyThrough, belongsToMany, hasOne diuji). Mahasiswa perlu membaca ulang tiap relasi supaya bisa menjelaskan saat demo |
+| 4 | Claude Code | Coding: controller, Form Request, Policy, route untuk lowongan/kriteria/pertanyaan/kandidat/sesi | Diminta CRUD Fase 0 dengan pembatasan role | Dipakai | 8 feature test di `tests/Feature/Phase0FoundationTest.php` lulus (33 tes total termasuk auth Breeze). **[belum diverifikasi manual]** Mahasiswa harus mencoba alur lewat browser dan mencatat hasilnya di sini |
+| 5 | Claude Code | Desain UI (skill `frontend-design`) | Diminta desain yang "tidak terlihat seperti AI slop, unik, simpel, ringan"; AI mengusulkan metafora catatan kertas/stabilo, IBM Plex Sans + Courier Prime | Dipakai | AI mengambil screenshot headless dan merevisi sendiri (font awal Atkinson Hyperlegible diganti karena angka nol bergaris; kelas status ter-purge diperbaiki). Mahasiswa harus menilai sendiri apakah desain cocok dan mencatat pendapatnya |
+| 6 | Claude Code | Dokumentasi | Diminta menulis ADR-001..003, ERD, design-system.md, devlog | Dipakai sebagian | Isi ADR diturunkan dari diskusi keputusan; mahasiswa harus membaca dan mengoreksi bagian alasan yang tidak sesuai pemahamannya |
+
+## Catatan integritas
+
+- Seeder sengaja **tidak** berisi transkrip, segmen latency, hasil analisis, atau skor. Semua data evaluasi harus berasal dari rekaman dan eksperimen nyata.
+- Tidak ada API Speech Recognition eksternal yang dipakai atau direncanakan.
