@@ -64,6 +64,30 @@ Buka <http://127.0.0.1:8000>. Akun contoh:
 | Unggah CV gagal "file too large" | `upload_max_filesize` PHP < 5 MB | naikkan di `php.ini` XAMPP, restart |
 | `Class "App\...\Controller" ... authorize` | `composer install` belum dijalankan | `composer install` |
 
-## ASR service dan NLP (`services/`)
+## Menjalankan dengan ASR (`services/`)
 
-Menyusul di Fase 2. Rencana: `py -3.12 -m venv .venv`, `.venv\Scripts\activate`, `pip install -r requirements.txt`, `uvicorn app:app --port 8765`.
+Sekali:
+
+```powershell
+cd services
+py -3.12 -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Setiap kali (dua terminal):
+
+```powershell
+# terminal 1 — ASR service (model diunduh saat pertama kali, ±0,5 GB)
+cd services
+.venv\Scripts\activate
+uvicorn app.main:app --host 127.0.0.1 --port 8765
+
+# terminal 2 — aplikasi web
+cd web
+php artisan serve
+```
+
+Cek: <http://127.0.0.1:8765/health> harus `{"ok": true, ...}`. Alamat service diatur di `web/.env` (`ASR_HTTP_URL`, `ASR_WS_URL`, `ASR_USE_PROMPT`).
+
+Perekaman di browser memakai mikrofon lewat `getUserMedia`, yang hanya diizinkan pada `localhost`/`127.0.0.1` atau HTTPS. Untuk mengakses dari HP di jaringan yang sama diperlukan HTTPS lokal (Fase 5).

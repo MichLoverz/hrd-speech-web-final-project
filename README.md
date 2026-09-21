@@ -32,6 +32,8 @@ Akun contoh (dari seeder): `admin@hirenote.test`, `hrd@hirenote.test`, `intervie
 
 Tes: `php artisan test`.
 
+Untuk perekaman & transkripsi real-time, jalankan juga ASR service — lihat `docs/web-programming/install.md` bagian "Menjalankan dengan ASR".
+
 ## Prinsip yang tidak boleh dilanggar
 
 - Tidak ada API Speech Recognition eksternal. Inference berjalan lokal.
