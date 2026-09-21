@@ -28,7 +28,7 @@ npm run build               # atau: npm run dev
 php artisan serve
 ```
 
-Akun contoh (dari seeder): `admin@hirenote.test`, `hrd@hirenote.test`, `interviewer@hirenote.test` — kata sandi `password`.
+Akun contoh (dari seeder): lihat `docs/CATATAN-AKUN-DAN-ALAMAT.md` — semuanya kata sandi `password`.
 
 Tes: `php artisan test`.
 
