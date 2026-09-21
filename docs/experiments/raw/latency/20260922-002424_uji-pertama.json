@@ -1,0 +1,74 @@
+{
+  "label": "uji-pertama",
+  "started_at": "2026-09-22T00:24:24",
+  "config": {
+    "model_size": "small",
+    "partial_model_size": "base",
+    "compute_type": "int8",
+    "device": "cpu",
+    "cpu_threads": 12,
+    "language": "id",
+    "partial_beam_size": 1,
+    "final_beam_size": 2,
+    "condition_on_previous_text": false,
+    "partial_interval_ms": 1200,
+    "partial_window_s": 12.0,
+    "min_speech_ms_for_partial": 600,
+    "max_segment_s": 25.0,
+    "vad_threshold": 0.5,
+    "vad_min_silence_ms": 500,
+    "vad_speech_pad_ms": 200
+  },
+  "machine": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "machine": "AMD64",
+    "processor": "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD",
+    "python": "3.12.4",
+    "cpu_count": 12,
+    "faster_whisper": "1.2.0",
+    "ctranslate2": "4.8.2",
+    "onnxruntime": "1.30.0"
+  },
+  "summary": {
+    "label": "uji-pertama",
+    "events": 27,
+    "partial_latency_ms": {
+      "n": 18,
+      "mean": 2065.8,
+      "median": 1472.0,
+      "p95": 4358.6,
+      "min": 825.0,
+      "max": 6323.0
+    },
+    "final_latency_ms": {
+      "n": 9,
+      "mean": 3154.6,
+      "median": 2496.0,
+      "p95": 5532.6,
+      "min": 1879.0,
+      "max": 6447.0
+    },
+    "partial_rtf": {
+      "n": 18,
+      "mean": 0.8,
+      "median": 0.6,
+      "p95": 2.3,
+      "min": 0.1,
+      "max": 2.4
+    },
+    "final_rtf": {
+      "n": 9,
+      "mean": 0.5,
+      "median": 0.3,
+      "p95": 1.1,
+      "min": 0.2,
+      "max": 1.6
+    },
+    "audio_seconds_transcribed_final": 55.0
+  },
+  "stats": {
+    "partials": 18,
+    "partials_skipped": 0,
+    "finals": 9
+  }
+}

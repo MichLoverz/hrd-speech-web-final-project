@@ -1,0 +1,28 @@
+seq,is_final,start_ms,end_ms,audio_duration_ms,chunk_received_at,inference_started_at,inference_ended_at,emitted_at,latency_ms,inference_ms,real_time_factor,avg_logprob,no_speech_prob,model,text
+1,0,2600,4200,1600,1790011469.154,1790011469.155,1790011471.686,1790011471.686,2532,2531,1.582,-1.066,0.32,faster-whisper/base/int8,selamat pagi nama saya
+2,1,2600,8000,5400,1790011472.944,1790011472.957,1790011475.335,1790011475.335,2390,2377,0.44,-0.555,0.024,faster-whisper/small/int8,"Selamat pagi, nama saya Michael, saya Malamar untuk Persisi Backhand Developer"
+3,0,10000,11600,1600,1790011476.553,1790011476.556,1790011477.379,1790011477.379,825,822,0.514,-0.793,0.088,faster-whisper/base/int8,di projek traker
+4,0,10000,13800,3800,1790011478.755,1790011478.755,1790011479.675,1790011479.675,920,920,0.242,-0.588,0.02,faster-whisper/base/int8,di proyek terakhir saya memimpin migrasi database dari
+5,0,10000,16000,6000,1790011480.955,1790011480.957,1790011481.999,1790011481.999,1044,1041,0.173,-0.572,0.009,faster-whisper/base/int8,di projek terakhir saya memimpin migrasi databis dari mySQL ke postcreasql selamat
+6,0,10000,18400,8400,1790011483.354,1790011483.357,1790011484.575,1790011484.575,1220,1218,0.145,-0.525,0.015,faster-whisper/base/int8,"di proyek terakhir, saya memimpin migrasi databis dari mySQL ke postgreSQL selama 3.0 dengan dimatih morang"
+7,1,10000,19200,9200,1790011484.154,1790011484.582,1790011486.65,1790011486.65,2496,2067,0.225,-0.258,0.047,faster-whisper/small/int8,di proyek terakhir saya memimpin migrasi database dari MySQL ke PostgreSQL selama 3 bulan dengan dimatikan orang
+8,0,21200,22800,1600,1790011487.755,1790011487.757,1790011490.065,1790011490.065,2309,2307,1.442,-1.136,0.031,faster-whisper/base/int8,antara besar nya adalah
+9,0,21200,26400,5200,1790011491.344,1790011491.357,1790011492.291,1790011492.293,948,934,0.18,-0.96,0.003,faster-whisper/base/int8,antara besarnya adalah kaweri yang lama di label transaksi
+10,1,21200,26600,5400,1790011491.554,1790011492.295,1790011494.187,1790011494.187,2633,1892,0.35,-0.576,0.002,faster-whisper/small/int8,Tantang entera besar nya adalah kweri yang lambat di label transseksi.
+11,0,27000,27600,600,1790011492.555,1790011494.197,1790011495.545,1790011495.545,2989,1348,2.247,-1.888,0.53,faster-whisper/base/int8,Yaudi
+12,0,27000,31800,4800,1790011496.75,1790011496.75,1790011497.737,1790011497.737,987,987,0.206,-0.792,0.0,faster-whisper/base/int8,jadi saya menambahkan index dan mengubuh beberapa kawasan jadi batch process
+13,1,27000,32400,5400,1790011497.353,1790011497.743,1790011499.452,1790011499.452,2098,1709,0.316,-0.252,0.012,faster-whisper/small/int8,jadi saya menambahkan index dan mengubah beberapa query menjadi batch processing
+14,0,33400,35000,1600,1790011499.954,1790011499.955,1790011501.679,1790011501.679,1724,1723,1.077,-1.436,0.235,faster-whisper/base/int8,Baik yang pada di soal ini?
+15,0,33400,38000,4600,1790011502.952,1790011502.955,1790011506.415,1790011506.415,3462,3459,0.752,-1.38,0.166,faster-whisper/base/int8,"Bakken pada insolid, di sepertinya bukan kemukannya adalah Rescondition di PEMON Q"
+16,1,33400,39000,5600,1790011503.955,1790011506.42,1790011508.062,1790011508.062,4107,1642,0.293,-0.459,0.093,faster-whisper/small/int8,bagi yang paling sulit yang saya pernah temukan adalah race condition di payment QE
+17,0,42200,43800,1600,1790011508.755,1790011508.755,1790011510.601,1790011510.603,1847,1845,1.153,-1.323,0.358,faster-whisper/base/int8,"saya akan menambuhkan yang lain, yang lain saya akan menambuhkan yang lain"
+18,0,42200,47000,4800,1790011511.955,1790011511.955,1790011512.951,1790011512.951,995,995,0.207,-0.803,0.013,faster-whisper/base/int8,"dan menambutannya dengan nabakkan struktur login, lalu membanding ke timestand"
+19,0,42200,49200,7000,1790011514.155,1790011514.156,1790011515.185,1790011515.185,1029,1028,0.147,-0.821,0.004,faster-whisper/base/int8,"dan menemukannya dengan mengenakan struktur login, lalu membanding ke timestamp dari 2 warker yang merujalan"
+20,1,42200,50600,8400,1790011515.555,1790011515.557,1790011517.733,1790011517.735,2180,2175,0.259,-0.26,0.009,faster-whisper/small/int8,Saya menemukannya dengan nambahkan Structure Logging lalu membandingkan timestamp dari dua worker yang berjalan bersamaan.
+21,0,50800,51400,600,1790011516.356,1790011517.74,1790011519.165,1790011519.165,2809,1424,2.373,-2.009,0.476,faster-whisper/base/int8,Dan lo kak...
+22,1,50800,54800,4000,1790011519.755,1790011519.757,1790011526.202,1790011526.202,6447,6444,1.611,-1.171,0.157,faster-whisper/small/int8,"kalau 4nya bisa ditabar, bisa bisa ditanyain 2-3nya"
+23,0,54800,55400,600,1790011520.353,1790011526.207,1790011526.677,1790011526.677,6323,469,0.782,,,faster-whisper/base/int8,
+24,1,54800,59200,4400,1790011524.155,1790011526.702,1790011528.317,1790011528.317,4161,1614,0.367,-0.907,0.244,faster-whisper/small/int8,karena sering kali refiur mulia etxkesi yang saya lewatkan
+25,0,59200,59800,600,1790011524.753,1790011528.322,1790011528.765,1790011528.765,4012,443,0.738,,,faster-whisper/base/int8,
+26,0,59200,65200,6000,1790011530.155,1790011530.157,1790011531.366,1790011531.366,1210,1209,0.202,-0.571,0.046,faster-whisper/base/int8,"Untuk ekspetasi Gigi sendiri sih saya mengharapkan sekitar 80 jodoroknya, tapi saya terbuka untuk di diskus."
+27,1,59200,66400,7200,1790011531.354,1790011531.377,1790011533.233,1790011533.233,1879,1856,0.258,-0.235,0.07,faster-whisper/small/int8,untuk ekspetasi gadget sendiri sih saya mengarahkan sekitar 80 juta rupiah tapi saya terbuka untuk didiskusikan
