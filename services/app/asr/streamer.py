@@ -52,6 +52,10 @@ from app.asr.engine import WhisperEngine
 from app.asr.vad import StreamingVad
 from app.config import AsrConfig, SAMPLE_RATE, VAD_FRAME_SAMPLES
 
+if False:  # typing only
+    from app.asr.diarizer import OnlineDiarizer
+    from app.asr.questions import QuestionTracker
+
 
 @dataclass
 class TranscriptEvent:
@@ -71,6 +75,10 @@ class TranscriptEvent:
     no_speech_prob: float | None = None
     seq: int = 0
     last_chunk_client_ms: float | None = None   # client-side send time of the last chunk, echoed for e2e latency
+    speaker: str | None = None                  # interviewer | candidate | unknown (None when diarization is off)
+    speaker_similarity: float | None = None
+    speaker_margin: float | None = None
+    question_id: int | None = None              # active question when this segment was published
 
     @property
     def latency_ms(self) -> int:
@@ -100,6 +108,10 @@ class TranscriptEvent:
             "no_speech_prob": None if self.no_speech_prob is None else round(self.no_speech_prob, 3),
             "model": self.model,
             "text": self.text,
+            "speaker": self.speaker,
+            "speaker_similarity": None if self.speaker_similarity is None else round(self.speaker_similarity, 3),
+            "speaker_margin": None if self.speaker_margin is None else round(self.speaker_margin, 3),
+            "question_id": self.question_id,
         }
 
     def to_message(self) -> dict:
@@ -158,6 +170,9 @@ class StreamingTranscriber:
         vad: StreamingVad | None = None,
         partial_engine: WhisperEngine | None = None,
         initial_prompt: str | None = None,
+        diarizer: "OnlineDiarizer | None" = None,
+        question_tracker: "QuestionTracker | None" = None,
+        on_question_change: Callable[[dict], None] | None = None,
     ):
         self.engine = engine                                 # finals (the text that gets stored)
         self.partial_engine = partial_engine or engine       # partials (may be a smaller, faster model)
@@ -165,6 +180,10 @@ class StreamingTranscriber:
         self.on_event = on_event
         self.vad = vad or StreamingVad()
         self.initial_prompt = initial_prompt
+        # Continuous-interview mode: who is speaking, and which question is active.
+        self.diarizer = diarizer
+        self.question_tracker = question_tracker
+        self.on_question_change = on_question_change
 
         self._stream_ms = 0                # audio time consumed so far
         self._frame_tail = np.zeros(0, dtype=np.float32)   # leftover samples < one VAD frame
@@ -306,7 +325,9 @@ class StreamingTranscriber:
             result = self.partial_engine.transcribe(audio, final=False, initial_prompt=self.initial_prompt,
                                                     language=self.config.language)
             self.stats["partials"] += 1
-            self._publish(result, audio_len=len(audio), is_final=False, snap=snap, model=self.partial_engine.name)
+            speaker = self.diarizer.peek(audio) if self.diarizer else None
+            self._publish(result, audio_len=len(audio), is_final=False, snap=snap,
+                          model=self.partial_engine.name, speaker=speaker)
         finally:
             self._partial_busy = False
 
@@ -324,14 +345,27 @@ class StreamingTranscriber:
         self._pending_finals.append(fut)
 
     def _run_final(self, audio: np.ndarray, snap: _Snapshot) -> None:
+        # Speaker first (cheap, ~70 ms) so the label is known before the question tracker runs.
+        speaker = self.diarizer.assign(audio) if self.diarizer else None
         result = self.engine.transcribe(audio, final=True, initial_prompt=self.initial_prompt,
                                         language=self.config.language)
         self.stats["finals"] += 1
-        self._publish(result, audio_len=len(audio), is_final=True, snap=snap, model=self.engine.name)
+
+        # Only the interviewer moves the interview forward. Decide the active question
+        # BEFORE publishing so this very segment carries the new question_id.
+        if self.question_tracker and speaker and speaker.label == "interviewer":
+            change = self.question_tracker.on_interviewer_final(result.text, snap.id)
+            if change and self.on_question_change:
+                self.on_question_change({"type": "question_change", "question_id": change.question_id,
+                                         "reason": change.reason, "score": change.score,
+                                         "segment_id": change.segment_id, "text": change.text})
+
+        self._publish(result, audio_len=len(audio), is_final=True, snap=snap, model=self.engine.name, speaker=speaker)
 
     # --- output
 
-    def _publish(self, result, *, audio_len: int, is_final: bool, snap: _Snapshot, model: str) -> None:
+    def _publish(self, result, *, audio_len: int, is_final: bool, snap: _Snapshot, model: str,
+                 speaker=None) -> None:
         with self._seq_lock:
             self._seq += 1
             seq = self._seq
@@ -352,5 +386,9 @@ class StreamingTranscriber:
             no_speech_prob=result.no_speech_prob,
             seq=seq,
             last_chunk_client_ms=snap.last_chunk_client_ms,
+            speaker=speaker.label if speaker else None,
+            speaker_similarity=speaker.similarity if speaker else None,
+            speaker_margin=speaker.margin if speaker else None,
+            question_id=self.question_tracker.active_id if self.question_tracker else None,
         )
         self.on_event(event)

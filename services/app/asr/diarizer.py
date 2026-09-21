@@ -107,6 +107,25 @@ class OnlineDiarizer:
         margin = (sims[best] - min(sims)) if len(sims) > 1 else None
         return SpeakerDecision(LABELS[best], best, sims[best], margin, embed_ms, "assigned")
 
+    def peek(self, audio: np.ndarray) -> SpeakerDecision:
+        """Label without learning: used for partials so the same audio is not counted twice."""
+        if not self.centroids or len(audio) < int(self.min_embed_s * SAMPLE_RATE):
+            idx = self._last_index
+            return SpeakerDecision(LABELS[idx] if idx is not None else "unknown", idx, None, None, 0, "peek_short")
+        t0 = time.time()
+        vec = self.embed(audio)
+        sims = [float(vec @ c) for c in self.centroids]
+        best = int(np.argmax(sims))
+        if len(self.centroids) == 1 and sims[0] < self.new_speaker_threshold:
+            # Probably the second speaker, but only a final may open a new centroid.
+            return SpeakerDecision("candidate", 1, sims[0], None, int((time.time() - t0) * 1000), "peek_new")
+        margin = (sims[best] - min(sims)) if len(sims) > 1 else None
+        return SpeakerDecision(LABELS[best], best, sims[best], margin, int((time.time() - t0) * 1000), "peek")
+
+    @property
+    def current_label(self) -> str:
+        return LABELS[self._last_index] if self._last_index is not None else "unknown"
+
     def reset(self) -> None:
         self.centroids, self.counts, self._last_index = [], [], None
 

@@ -32,6 +32,7 @@ async def main() -> None:
     p.add_argument("--language", default="id")
     p.add_argument("--prompt", default="")
     p.add_argument("--chunk-ms", type=int, default=200)
+    p.add_argument("--questions", default=None, help="JSON file [{id,text},...] -> interview mode (diarization + tracking)")
     a = p.parse_args()
 
     audio = load_mono_16k(a.wav)
@@ -40,7 +41,10 @@ async def main() -> None:
     e2e: list[int] = []
 
     async with websockets.connect(a.url, max_size=None) as ws:
-        await ws.send(json.dumps({"type": "start", "language": a.language, "prompt": a.prompt}))
+        start = {"type": "start", "language": None if a.language == "auto" else a.language, "prompt": a.prompt}
+        if a.questions:
+            start.update({"mode": "interview", "questions": json.load(open(a.questions, encoding="utf-8"))})
+        await ws.send(json.dumps(start))
 
         async def reader():
             async for raw in ws:
@@ -51,8 +55,11 @@ async def main() -> None:
                     if e2e_ms is not None:
                         e2e.append(e2e_ms)
                     tag = "FINAL  " if t == "final" else "partial"
-                    print(f"[{tag} seg{msg['segment_id']:>2}] server {msg['latency_ms']:>5} ms  e2e {e2e_ms!s:>5} ms  "
+                    spk = f" {msg['speaker'][:5]:<5} q{msg['question_id'] or '-'}" if msg.get("speaker") else ""
+                    print(f"[{tag} seg{msg['segment_id']:>2}{spk}] server {msg['latency_ms']:>5} ms  e2e {e2e_ms!s:>5} ms  "
                           f"RTF {msg['real_time_factor']:<5} {msg['text']}")
+                elif t == "question_change":
+                    print(f"  >>> QUESTION {msg['question_id']}  ({msg['reason']}, score {msg['score']})  <- {str(msg.get('text'))[:70]}")
                 elif t == "done":
                     print("done", msg["stats"])
                     return

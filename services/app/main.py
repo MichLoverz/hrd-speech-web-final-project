@@ -7,13 +7,20 @@ WebSocket protocol  (/asr/stream)
 ---------------------------------
 client -> server
   text  {"type":"start", "language":"id", "prompt":"<question text or empty>", "use_prompt":true}
+        per-question mode (phase 3): one question, no diarization
+  text  {"type":"start", "mode":"interview", "language":"id",
+         "questions":[{"id":12,"text":"..."}, ...], "trigger_phrases":[...], "use_prompt":true}
+        continuous-interview mode (phase 3b): diarization + question tracking; the prompt is
+        rebuilt from the active question on every change
   bytes <8-byte float64 little-endian client_ms><int16 PCM 16 kHz mono ...>   (one chunk, ~200 ms)
+  text  {"type":"set_question", "question_id":12}      manual override (interview mode)
   text  {"type":"stop"}
 server -> client
-  text  {"type":"ready", "final_model":..., "partial_model":..., "config":{...}}
+  text  {"type":"ready", "final_model":..., "partial_model":..., "config":{...}, "mode":...}
   text  {"type":"partial"|"final", "segment_id":.., "seq":.., "text":.., "latency_ms":..,
          "chunk_received_at":.., "emitted_at":.., "real_time_factor":.., "model":..,
-         "last_chunk_client_ms":.. , ...}
+         "last_chunk_client_ms":.., "speaker":.., "speaker_similarity":.., "question_id":.., ...}
+  text  {"type":"question_change", "question_id":.., "reason":"match|phrase|manual", "score":..}
   text  {"type":"done", "stats":{...}}
   text  {"type":"error", "message":...}
 
@@ -39,7 +46,9 @@ import numpy as np
 from fastapi import FastAPI, File, Form, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.asr.diarizer import OnlineDiarizer
 from app.asr.engine import WhisperEngine
+from app.asr.questions import DEFAULT_TRIGGER_PHRASES, QuestionTracker
 from app.asr.streamer import StreamingTranscriber, TranscriptEvent
 from app.config import DEFAULT, AsrConfig, SAMPLE_RATE
 
@@ -78,11 +87,18 @@ def health() -> dict:
     }
 
 
-def _make_transcriber(on_event, *, language: str | None, prompt: str | None) -> StreamingTranscriber:
+def _make_transcriber(on_event, *, language: str | None, prompt: str | None,
+                      interview: dict | None = None, on_question_change=None) -> StreamingTranscriber:
+    """interview = {"questions": [...], "trigger_phrases": [...]} switches on diarization + tracking."""
     cfg = AsrConfig(**{**CONFIG.to_dict(), "language": language})
+    diarizer = tracker = None
+    if interview is not None:
+        diarizer = OnlineDiarizer()
+        tracker = QuestionTracker(interview["questions"], interview.get("trigger_phrases") or DEFAULT_TRIGGER_PHRASES)
     return StreamingTranscriber(
         ENGINES["final"], cfg, on_event=on_event,
         partial_engine=ENGINES.get("partial"), initial_prompt=prompt,
+        diarizer=diarizer, question_tracker=tracker, on_question_change=on_question_change,
     )
 
 
@@ -134,18 +150,44 @@ async def asr_stream(ws: WebSocket) -> None:
 
             if cmd.get("type") == "start":
                 language = cmd.get("language") or CONFIG.language
+                use_prompt = bool(cmd.get("use_prompt", True))
+                mode = cmd.get("mode") or "question"
                 prompt = (cmd.get("prompt") or "").strip() or None
-                if not cmd.get("use_prompt", True):
+                interview = None
+                if mode == "interview":
+                    questions = [{"id": int(q["id"]), "text": str(q["text"])} for q in cmd.get("questions") or []]
+                    interview = {"questions": questions, "trigger_phrases": cmd.get("trigger_phrases")}
+                    # No active question yet: bias the first segments with the first question.
+                    prompt = questions[0]["text"] if (use_prompt and questions) else None
+                if not use_prompt:
                     prompt = None
-                transcriber = _make_transcriber(on_event, language=language, prompt=prompt)
+
+                def on_question_change(msg: dict) -> None:
+                    # Re-bias Whisper with the question now being answered. Read by the worker
+                    # threads on their next call; a plain attribute write is atomic in CPython.
+                    if use_prompt and transcriber is not None:
+                        qtext = next((q["text"] for q in interview["questions"] if q["id"] == msg["question_id"]), None)
+                        transcriber.initial_prompt = qtext
+                    loop.call_soon_threadsafe(outbox.put_nowait, msg)
+
+                transcriber = _make_transcriber(on_event, language=language, prompt=prompt,
+                                                interview=interview, on_question_change=on_question_change)
                 await outbox.put({
                     "type": "ready",
+                    "mode": mode,
                     "final_model": ENGINES["final"].name,
                     "partial_model": transcriber.partial_engine.name,
+                    "speaker_model": transcriber.diarizer.model_name if transcriber.diarizer else None,
                     "sample_rate": SAMPLE_RATE,
                     "prompt_used": prompt,
                     "config": transcriber.config.to_dict(),
                 })
+            elif cmd.get("type") == "set_question":
+                if transcriber is not None and transcriber.question_tracker is not None:
+                    change = transcriber.question_tracker.set_manual(int(cmd.get("question_id")))
+                    if change:
+                        on_question_change({"type": "question_change", "question_id": change.question_id,
+                                            "reason": "manual", "score": None, "segment_id": None, "text": None})
             elif cmd.get("type") == "stop":
                 if transcriber is not None:
                     await loop.run_in_executor(None, transcriber.flush)
