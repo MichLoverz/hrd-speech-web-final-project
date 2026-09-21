@@ -13,7 +13,7 @@ tools/  Harness evaluasi: WER/CER dan laporan latency                           
 docs/   Devlog harian, ADR, eksperimen, screenshot, AI usage log, user testing
 ```
 
-## Menjalankan aplikasi web (Fase 0)
+## Menjalankan aplikasi web
 
 Prasyarat: PHP 8.2+, Composer, Node 20+, MySQL/MariaDB.
 
@@ -39,4 +39,4 @@ Tes: `php artisan test`.
 - Tidak ada data eksperimen, hasil WER, atau user testing yang dibuat-buat.
 - Rekaman wawancara dan CV tidak pernah masuk ke git.
 
-Lihat `docs/decisions/` untuk alasan di balik keputusan arsitektur dan `docs/ai-usage-log.md` untuk catatan penggunaan AI.
+Dokumentasi: `docs/web-programming/` (ERD, route, model, alur request, instalasi lengkap), `docs/decisions/` (ADR), `docs/ai-usage-log.md`.

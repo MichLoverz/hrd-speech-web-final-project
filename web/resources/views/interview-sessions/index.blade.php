@@ -7,6 +7,19 @@
 
     <div class="sheet-section">
         <form method="GET" class="flex flex-wrap items-end gap-3 mb-6">
+            <div class="flex-1 min-w-[180px]">
+                <label for="q" class="field-label">Kandidat</label>
+                <input id="q" name="q" type="search" value="{{ $filters['q'] ?? '' }}" class="field-input" placeholder="Nama atau email">
+            </div>
+            <div>
+                <label for="job_opening_id" class="field-label">Lowongan</label>
+                <select id="job_opening_id" name="job_opening_id" class="field-select">
+                    <option value="">Semua</option>
+                    @foreach ($openings as $opening)
+                        <option value="{{ $opening->id }}" @selected((int) ($filters['job_opening_id'] ?? 0) === $opening->id)>{{ $opening->title }}</option>
+                    @endforeach
+                </select>
+            </div>
             <div>
                 <label for="status" class="field-label">Status</label>
                 <select id="status" name="status" class="field-select">
@@ -15,6 +28,14 @@
                         <option value="{{ $s }}" @selected(($filters['status'] ?? '') === $s)>{{ status_label($s) }}</option>
                     @endforeach
                 </select>
+            </div>
+            <div>
+                <label for="from" class="field-label">Dibuat sejak</label>
+                <input id="from" name="from" type="date" value="{{ $filters['from'] ?? '' }}" class="field-input">
+            </div>
+            <div>
+                <label for="to" class="field-label">Sampai</label>
+                <input id="to" name="to" type="date" value="{{ $filters['to'] ?? '' }}" class="field-input">
             </div>
             <button type="submit" class="btn-quiet">Terapkan</button>
             @if (array_filter($filters))
@@ -25,7 +46,7 @@
         @if ($sessions->isEmpty())
             <div class="empty">
                 @if (array_filter($filters))
-                    Tidak ada sesi dengan status ini.
+                    Tidak ada sesi yang cocok dengan filter ini.
                 @else
                     Belum ada sesi wawancara. Buat sesi dari halaman kandidat atau dari tombol di atas.
                 @endif
@@ -38,7 +59,8 @@
                             <th>Kandidat</th>
                             <th>Lowongan</th>
                             <th>Pewawancara utama</th>
-                            <th>Waktu</th>
+                            <th>Dibuat</th>
+                            <th class="text-right">Penilaian</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -48,7 +70,8 @@
                                 <td><a href="{{ route('interview-sessions.show', $session) }}" class="font-semibold">{{ $session->candidate->name }}</a></td>
                                 <td>{{ $session->candidate->jobOpening->title }}</td>
                                 <td>{{ $session->interviewer->name }}</td>
-                                <td class="text-sm text-ink-soft whitespace-nowrap">{{ $session->started_at?->translatedFormat('d M Y, H:i') ?? 'belum dimulai' }}</td>
+                                <td class="text-sm text-ink-soft whitespace-nowrap">{{ $session->created_at->translatedFormat('d M Y') }}</td>
+                                <td class="text-right tabular-nums">{{ $session->submitted_assessments_count }}</td>
                                 <td><x-status :value="$session->status" /></td>
                             </tr>
                         @endforeach

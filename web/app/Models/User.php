@@ -69,7 +69,13 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    /** Scorecards this user approved. */
+    /** Manual scorecards this user filled in as a rater. */
+    public function manualAssessments(): HasMany
+    {
+        return $this->hasMany(ManualAssessment::class, 'rater_id');
+    }
+
+    /** AI scorecards this user approved. */
     public function approvedAnalyses(): HasMany
     {
         return $this->hasMany(AnalysisResult::class, 'approved_by');

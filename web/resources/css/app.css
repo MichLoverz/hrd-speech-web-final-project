@@ -169,6 +169,10 @@
         @apply form-checkbox rounded border-rule text-ink focus:ring-0 focus:ring-offset-0;
     }
 
+    .field-radio {
+        @apply form-radio border-rule text-ink focus:ring-0 focus:ring-offset-0;
+    }
+
     /* Status words: plain text with a small ink/pencil/stamp dot; no pills. */
     .status {
         @apply inline-flex items-center gap-2 text-sm;

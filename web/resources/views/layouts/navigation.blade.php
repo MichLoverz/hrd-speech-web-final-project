@@ -4,6 +4,9 @@
         ['route' => 'candidates.index', 'label' => 'Kandidat', 'active' => 'candidates.*'],
         ['route' => 'interview-sessions.index', 'label' => 'Sesi wawancara', 'active' => 'interview-sessions.*'],
     ];
+    if (Auth::user()->isAdmin()) {
+        $links[] = ['route' => 'admin.users.index', 'label' => 'Pengguna', 'active' => 'admin.users.*'];
+    }
 @endphp
 <nav x-data="{ open: false }" class="border-b border-rule bg-sheet">
     <div class="max-w-sheet mx-auto px-4 sm:px-6 flex items-center justify-between h-14">

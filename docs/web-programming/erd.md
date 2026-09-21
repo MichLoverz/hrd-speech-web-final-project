@@ -27,6 +27,11 @@ erDiagram
     analysis_results ||--o{ scores : ""
     scores ||--o{ evidence_quotes : ""
 
+    interview_sessions ||--o{ manual_assessments : ""
+    users ||--o{ manual_assessments : "rater_id"
+    manual_assessments ||--o{ manual_scores : ""
+    criteria ||--o{ manual_scores : ""
+
     users {
         bigint id PK
         string name
@@ -130,13 +135,27 @@ erDiagram
         enum supports "strength | weakness"
         boolean is_verified
     }
+    manual_assessments {
+        bigint id PK
+        bigint interview_session_id FK
+        bigint rater_id FK
+        text overall_notes
+        timestamp submitted_at
+    }
+    manual_scores {
+        bigint id PK
+        bigint manual_assessment_id FK
+        bigint criterion_id FK
+        tinyint score
+        text notes
+    }
 ```
 
 ## Jenis relasi yang terwakili
 
 | Jenis | Contoh | Di kode |
 |---|---|---|
-| One-to-many | `job_openings → criteria`, `answers → transcript_segments` | `hasMany` / `belongsTo` |
+| One-to-many | `job_openings → criteria`, `answers → transcript_segments`, `manual_assessments → manual_scores` | `hasMany` / `belongsTo` |
 | One-to-one | `interview_sessions → analysis_results` | `hasOne` + kolom unik |
 | Many-to-many | `interview_sessions ↔ users` (panel) | `belongsToMany` via `interview_session_interviewers` |
 | Has-many-through | `job_openings → questions` (lewat `criteria`), `analysis_results → evidence_quotes` (lewat `scores`) | `hasManyThrough` |

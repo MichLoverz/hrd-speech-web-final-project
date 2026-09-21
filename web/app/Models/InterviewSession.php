@@ -62,7 +62,13 @@ class InterviewSession extends Model
         return $this->hasMany(Consent::class);
     }
 
-    /** One scorecard per session (one-to-one). */
+    /** Human scorecards, one per rater. */
+    public function manualAssessments(): HasMany
+    {
+        return $this->hasMany(ManualAssessment::class);
+    }
+
+    /** One AI scorecard per session (one-to-one). */
     public function analysisResult(): HasOne
     {
         return $this->hasOne(AnalysisResult::class);

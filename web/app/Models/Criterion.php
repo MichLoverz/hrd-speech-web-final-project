@@ -38,8 +38,15 @@ class Criterion extends Model
         return $this->hasMany(Question::class)->orderBy('position');
     }
 
+    /** AI scores. */
     public function scores(): HasMany
     {
         return $this->hasMany(Score::class);
+    }
+
+    /** Human scores. */
+    public function manualScores(): HasMany
+    {
+        return $this->hasMany(ManualScore::class);
     }
 }

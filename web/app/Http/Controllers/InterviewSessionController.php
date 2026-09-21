@@ -32,14 +32,20 @@ class InterviewSessionController extends Controller
                 });
             })
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
+            ->when($request->filled('q'), fn ($q) => $q->whereHas('candidate', fn ($c) => $c->search($request->string('q'))))
+            ->when($request->filled('job_opening_id'), fn ($q) => $q->whereHas('candidate', fn ($c) => $c->where('job_opening_id', $request->integer('job_opening_id'))))
+            ->when($request->filled('from'), fn ($q) => $q->whereDate('created_at', '>=', $request->date('from')))
+            ->when($request->filled('to'), fn ($q) => $q->whereDate('created_at', '<=', $request->date('to')))
             ->with(['candidate.jobOpening', 'interviewer', 'analysisResult'])
+            ->withCount(['manualAssessments as submitted_assessments_count' => fn ($q) => $q->whereNotNull('submitted_at')])
             ->latest()
             ->paginate(15)
             ->withQueryString();
 
         return view('interview-sessions.index', [
             'sessions' => $sessions,
-            'filters' => $request->only('status'),
+            'openings' => JobOpening::visibleTo($user)->orderBy('title')->get(['id', 'title']),
+            'filters' => $request->only('status', 'q', 'job_opening_id', 'from', 'to'),
         ]);
     }
 
@@ -94,7 +100,7 @@ class InterviewSessionController extends Controller
             ->with('status', 'Sesi wawancara dibuat sebagai draf.');
     }
 
-    public function show(InterviewSession $interviewSession): View
+    public function show(Request $request, InterviewSession $interviewSession): View
     {
         $this->authorize('view', $interviewSession);
 
@@ -105,9 +111,23 @@ class InterviewSessionController extends Controller
             'consents',
             'answers.question',
             'analysisResult',
+            'manualAssessments.rater',
+            'manualAssessments.scores',
         ]);
 
-        return view('interview-sessions.show', ['session' => $interviewSession]);
+        $user = $request->user();
+        $mine = $interviewSession->manualAssessments->firstWhere('rater_id', $user->id);
+
+        // Blind rating: other raters' submitted scorecards are visible only after you submit yours (admins excepted).
+        $others = ($user->isAdmin() || $mine?->isSubmitted())
+            ? $interviewSession->manualAssessments->filter(fn ($a) => $a->isSubmitted() && $a->rater_id !== $user->id)
+            : collect();
+
+        return view('interview-sessions.show', [
+            'session' => $interviewSession,
+            'myAssessment' => $mine,
+            'otherAssessments' => $others,
+        ]);
     }
 
     public function destroy(InterviewSession $interviewSession): RedirectResponse

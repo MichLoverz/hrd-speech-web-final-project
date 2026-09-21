@@ -7,6 +7,7 @@
 <x-page :title="$opening->title" :subtitle="trim(($opening->department ? $opening->department.' — ' : '').'dibuat oleh '.$opening->creator->name)" :back="route('job-openings.index')" back-label="Semua lowongan">
     <x-slot:actions>
         <x-status :value="$opening->status" class="mr-2" />
+        <a href="{{ route('job-openings.compare', $opening) }}" class="btn-quiet">Bandingkan kandidat</a>
         @if ($canEdit)
             <a href="{{ route('job-openings.edit', $opening) }}" class="btn-quiet">Ubah lowongan</a>
         @endif

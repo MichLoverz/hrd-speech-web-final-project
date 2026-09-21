@@ -1,9 +1,12 @@
 <?php
 
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\CandidateComparisonController;
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\CriterionController;
 use App\Http\Controllers\InterviewSessionController;
 use App\Http\Controllers\JobOpeningController;
+use App\Http\Controllers\ManualAssessmentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuestionController;
 use Illuminate\Support\Facades\Route;
@@ -18,9 +21,11 @@ Route::middleware('auth')->group(function () {
 
     // Read access for every role; writes are gated by policies inside the controllers.
     Route::resource('job-openings', JobOpeningController::class);
+    Route::get('job-openings/{jobOpening}/compare', CandidateComparisonController::class)->name('job-openings.compare');
     Route::resource('candidates', CandidateController::class);
     Route::get('candidates/{candidate}/cv', [CandidateController::class, 'cv'])->name('candidates.cv');
     Route::resource('interview-sessions', InterviewSessionController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
+    Route::post('interview-sessions/{interviewSession}/manual-assessment', [ManualAssessmentController::class, 'save'])->name('manual-assessments.save');
 
     // Criteria and questions are edited inline from the job opening page.
     Route::middleware('role:hrd')->group(function () {
@@ -31,6 +36,12 @@ Route::middleware('auth')->group(function () {
         Route::post('criteria/{criterion}/questions', [QuestionController::class, 'store'])->name('questions.store');
         Route::put('criteria/{criterion}/questions/{question}', [QuestionController::class, 'update'])->name('questions.update');
         Route::delete('criteria/{criterion}/questions/{question}', [QuestionController::class, 'destroy'])->name('questions.destroy');
+    });
+
+    // Account management is admin-only.
+    Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::patch('users/{user}/role', [AdminUserController::class, 'updateRole'])->name('users.role');
     });
 });
 
