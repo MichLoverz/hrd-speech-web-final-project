@@ -5,9 +5,9 @@ web/storage/app/cvs/
 web/storage/app/private/cvs/
 
 # ASR service
-asr/.venv/
-asr/models/
-asr/__pycache__/
+services/.venv/
+services/models/
+services/__pycache__/
 **/__pycache__/
 *.pyc
 

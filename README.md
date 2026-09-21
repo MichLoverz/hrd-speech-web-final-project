@@ -8,7 +8,7 @@ Proyek akhir untuk mata kuliah Speech Recognition (COMP6822001), Web Programming
 
 ```
 web/    Laravel 12 — aplikasi utama (auth, CRUD, penyimpanan transkrip & metrik, kartu skor)
-asr/    Python — ASR service real-time (FastAPI + WebSocket + faster-whisper)   [Fase 2]
+services/  Python — FastAPI: ASR real-time (WebSocket) + embedding NLP lokal    [Fase 2, 4]
 tools/  Harness evaluasi: WER/CER dan laporan latency                             [Fase 6]
 docs/   Devlog harian, ADR, eksperimen, screenshot, AI usage log, user testing
 ```
