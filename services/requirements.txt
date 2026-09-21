@@ -8,6 +8,9 @@ numpy>=1.26,<3
 sounddevice>=0.5,<1        # microphone capture for the CLI demo (PortAudio bundled in the wheel)
 soundfile>=0.12,<1         # read/write WAV for file-based demos and evidence recordings
 
+# --- diarization (phase 3b) ---
+sherpa-onnx>=1.12,<2         # speaker embedding extractor (ONNX); model downloaded by scripts/download_models.py
+
 # --- API (phase 3) ---
 fastapi>=0.115,<1
 uvicorn[standard]>=0.30,<1
