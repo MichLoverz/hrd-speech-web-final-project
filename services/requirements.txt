@@ -11,6 +11,8 @@ soundfile>=0.12,<1         # read/write WAV for file-based demos and evidence re
 # --- API (phase 3) ---
 fastapi>=0.115,<1
 uvicorn[standard]>=0.30,<1
+python-multipart>=0.0.9,<1   # form/file uploads for /asr/transcribe
+requests>=2.31,<3            # transitive dep of faster-whisper that pip once skipped on this machine
 websockets>=12,<14
 
 # --- evaluation (phase 6) ---

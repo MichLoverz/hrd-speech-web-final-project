@@ -24,7 +24,7 @@ import time
 import numpy as np
 import sounddevice as sd
 
-from _common import TerminalRenderer, add_common_args, config_from_args, finish, load_engines
+from _common import TerminalRenderer, add_common_args, config_from_args, finish, load_engines, read_prompt
 from app.asr.metrics import RunRecorder
 from app.asr.streamer import StreamingTranscriber
 from app.config import SAMPLE_RATE
@@ -44,7 +44,8 @@ def main() -> None:
     config = config_from_args(a)
     engine, partial_engine = load_engines(config)
     recorder = RunRecorder(config, label=a.label)
-    streamer = StreamingTranscriber(engine, config, on_event=TerminalRenderer(recorder), partial_engine=partial_engine)
+    streamer = StreamingTranscriber(engine, config, on_event=TerminalRenderer(recorder),
+                                    partial_engine=partial_engine, initial_prompt=read_prompt(a))
 
     audio_q: "queue.Queue[tuple[np.ndarray, float] | None]" = queue.Queue()
     dropped = {"chunks": 0}

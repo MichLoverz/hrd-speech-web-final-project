@@ -30,6 +30,8 @@ def add_common_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--label", default="run", help="name used for the CSV/JSON output files")
     p.add_argument("--out", default=str(DEFAULT_OUT), help="folder for raw latency logs")
     p.add_argument("--no-save", action="store_true")
+    p.add_argument("--prompt", default=None, help="initial_prompt text (contextual biasing), e.g. the interview question")
+    p.add_argument("--prompt-file", default=None, help="read the initial_prompt from a text file")
 
 
 def config_from_args(a: argparse.Namespace) -> AsrConfig:
@@ -47,7 +49,8 @@ def config_from_args(a: argparse.Namespace) -> AsrConfig:
 
 
 class TerminalRenderer:
-    """Partials overwrite one line in pencil-grey; finals are printed for good."""
+    """Partials overwrite one line in pencil-grey; finals are printed for good.
+    Called from the streamer's worker threads, so output is serialised with a lock."""
 
     GREY = "\033[90m"
     RESET = "\033[0m"
@@ -56,8 +59,13 @@ class TerminalRenderer:
     def __init__(self, recorder: RunRecorder):
         self.recorder = recorder
         self._partial_len = 0
+        self._lock = __import__("threading").Lock()
 
     def __call__(self, e: TranscriptEvent) -> None:
+        with self._lock:
+            self._render(e)
+
+    def _render(self, e: TranscriptEvent) -> None:
         self.recorder.add(e)
         if e.is_final:
             self._clear_partial()
@@ -90,8 +98,16 @@ def load_engines(config: AsrConfig) -> tuple[WhisperEngine, WhisperEngine | None
     return engine, partial
 
 
+def read_prompt(a: argparse.Namespace) -> str | None:
+    if a.prompt_file:
+        return Path(a.prompt_file).read_text(encoding="utf-8").strip()
+    return a.prompt
+
+
 def finish(recorder: RunRecorder, streamer: StreamingTranscriber, a: argparse.Namespace, extra: dict | None = None) -> None:
-    extra = {**(extra or {}), **streamer.stats}
+    streamer.wait()
+    streamer.close()
+    extra = {**(extra or {}), **streamer.stats, "initial_prompt": streamer.initial_prompt or ""}
     recorder.print_summary(extra)
     if not a.no_save:
         csv_path, json_path = recorder.save(Path(a.out), extra={"stats": streamer.stats})

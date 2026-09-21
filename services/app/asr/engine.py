@@ -64,22 +64,30 @@ class WhisperEngine:
     def name(self) -> str:
         return f"faster-whisper/{self.model_size}/{self.config.compute_type}"
 
-    def transcribe(self, audio: np.ndarray, *, final: bool) -> Transcription:
+    def transcribe(self, audio: np.ndarray, *, final: bool, initial_prompt: str | None = None,
+                   language: str | None = "__config__") -> Transcription:
         """
         audio: float32 mono at 16 kHz, values in [-1, 1].
         final=True uses the larger beam size; partials use greedy decoding.
+        initial_prompt: optional text fed to the decoder as preceding context.
+        Whisper treats it as "what was said before", so vocabulary in it (the
+        interview question, technical terms) becomes more likely in the output.
+        Contextual biasing; see ADR-006.
         """
         if audio.dtype != np.float32:
             audio = audio.astype(np.float32)
 
+        if language == "__config__":
+            language = self.config.language      # per-call override lets one shared engine serve several languages
         started = time.time()
         segments, _info = self.model.transcribe(
             audio,
-            language=self.config.language,
+            language=language,
             beam_size=self.config.final_beam_size if final else self.config.partial_beam_size,
             condition_on_previous_text=self.config.condition_on_previous_text,
             vad_filter=False,            # we gate with our own frame-level VAD in streamer.py
             without_timestamps=True,     # word timestamps cost time; segment position comes from the streamer
+            initial_prompt=initial_prompt or None,
         )
         # transcribe() is lazy: decoding only happens while iterating.
         pieces, logprobs, no_speech = [], [], []

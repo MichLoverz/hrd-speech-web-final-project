@@ -1,0 +1,18 @@
+seq,segment_id,is_final,start_ms,end_ms,audio_duration_ms,chunk_received_at,inference_started_at,inference_ended_at,emitted_at,latency_ms,inference_ms,real_time_factor,avg_logprob,no_speech_prob,model,text
+1,1,0,0,1400,1400,1790012431.484,1790012431.485,1790012431.988,1790012431.988,504,503,0.359,-0.261,0.021,faster-whisper/base/int8,Good morning everyone.
+2,1,1,0,2000,2000,1790012432.084,1790012432.086,1790012433.464,1790012433.464,1379,1377,0.689,-0.192,0.018,faster-whisper/small/int8,Good morning everyone.
+3,2,0,2000,3400,1400,1790012433.484,1790012433.485,1790012433.955,1790012433.955,471,470,0.336,-0.297,0.127,faster-whisper/base/int8,Today we will discuss speech
+4,2,0,2000,4600,2600,1790012434.684,1790012434.686,1790012435.667,1790012435.669,985,981,0.377,-0.056,0.013,faster-whisper/base/int8,Today we will discuss speech recognition.
+5,2,1,2000,5000,3000,1790012435.084,1790012435.09,1790012436.691,1790012436.691,1607,1601,0.534,-0.068,0.007,faster-whisper/small/int8,Today we will discuss speech recognition.
+6,3,0,6000,7600,1600,1790012437.684,1790012437.687,1790012438.492,1790012438.492,808,804,0.502,-0.473,0.113,faster-whisper/base/int8,In my last project I
+7,3,0,6000,9000,3000,1790012439.084,1790012439.085,1790012440.004,1790012440.004,920,918,0.306,-0.137,0.004,faster-whisper/base/int8,In my last project I let a database migration.
+8,3,0,6000,10200,4200,1790012440.284,1790012440.285,1790012441.225,1790012441.225,940,939,0.224,-0.306,0.008,faster-whisper/base/int8,In my last project I led a database migration from my sql top.
+9,3,0,6000,11600,5600,1790012441.684,1790012441.686,1790012442.615,1790012442.615,931,928,0.166,-0.225,0.006,faster-whisper/base/int8,In my last project I led a database migration from mySQL to Postgres over three months.
+10,3,0,6000,12800,6800,1790012442.884,1790012442.886,1790012443.705,1790012443.705,821,818,0.12,-0.257,0.023,faster-whisper/base/int8,"In my last project I led a database migration from my sql to post-gress over three months, with the team of"
+11,3,0,6000,14200,8200,1790012444.284,1790012444.286,1790012445.611,1790012445.611,1326,1324,0.161,-0.207,0.01,faster-whisper/base/int8,"In my last project I led a database migration from mySQL to Postgres over three months, with a team of five engineers."
+12,3,1,6000,14600,8600,1790012444.684,1790012444.689,1790012446.749,1790012446.749,2065,2060,0.24,-0.078,0.001,faster-whisper/small/int8,"In my last project I led a database migration from my SQL to Postgres over 3 months, with a team of 5 engineers."
+13,4,0,15600,17200,1600,1790012447.284,1790012447.284,1790012448.117,1790012448.117,833,833,0.521,-0.252,0.042,faster-whisper/base/int8,The hardest bug was a race...
+14,4,0,15600,18400,2800,1790012448.484,1790012448.486,1790012449.3,1790012449.3,816,814,0.291,-0.04,0.015,faster-whisper/base/int8,The hardest bug was a race condition in the payment.
+15,4,0,15600,19600,4000,1790012449.684,1790012449.687,1790012450.491,1790012450.491,807,804,0.201,-0.216,0.051,faster-whisper/base/int8,"The hardest bug was a race condition in the payment queue, which I f-"
+16,4,0,15600,21000,5400,1790012451.084,1790012451.089,1790012452.092,1790012452.092,1008,1003,0.186,-0.132,0.043,faster-whisper/base/int8,"The hardest bug was a race condition in the payment queue, which I found by adding structured"
+17,4,1,15600,22000,6400,1790012452.084,1790012452.091,1790012453.814,1790012453.814,1730,1723,0.269,-0.037,0.0,faster-whisper/small/int8,"The hardest bug was a race condition in the payment queue, which I found by adding structured logging."
