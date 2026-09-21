@@ -1,0 +1,17 @@
+# Real-time ASR service + local NLP embeddings. Python 3.12.
+# Install: py -3.12 -m venv .venv && .venv\Scripts\activate && pip install -r requirements.txt
+
+# --- ASR (phase 2-3) ---
+faster-whisper==1.2.0      # Whisper via CTranslate2, int8 on CPU; bundles Silero VAD (ONNX)
+onnxruntime>=1.17,<2       # runs the bundled Silero VAD model
+numpy>=1.26,<3
+sounddevice>=0.5,<1        # microphone capture for the CLI demo (PortAudio bundled in the wheel)
+soundfile>=0.12,<1         # read/write WAV for file-based demos and evidence recordings
+
+# --- API (phase 3) ---
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30,<1
+websockets>=12,<14
+
+# --- evaluation (phase 6) ---
+jiwer>=3.0,<4

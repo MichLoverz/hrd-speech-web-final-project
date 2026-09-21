@@ -1,0 +1,11 @@
+seq,is_final,start_ms,end_ms,audio_duration_ms,chunk_received_at,inference_started_at,inference_ended_at,emitted_at,latency_ms,inference_ms,real_time_factor,avg_logprob,no_speech_prob,model,text
+1,0,0,1400,1400,1790010574.608,1790010574.611,1790010576.899,1790010576.899,2291,2288,1.634,-0.233,0.024,faster-whisper/small/int8,Good morning everyone.
+2,1,0,2000,2000,1790010575.208,1790010576.906,1790010578.904,1790010578.904,3696,1998,0.999,-0.192,0.018,faster-whisper/small/int8,Good morning everyone.
+3,0,2000,2600,600,1790010575.808,1790010578.911,1790010580.77,1790010580.77,4962,1858,3.097,-0.445,0.209,faster-whisper/small/int8,Today we
+4,1,2000,5000,3000,1790010578.208,1790010580.796,1790010582.712,1790010582.712,4503,1916,0.639,-0.068,0.007,faster-whisper/small/int8,Today we will discuss speech recognition.
+5,0,6000,6600,600,1790010579.808,1790010582.726,1790010584.415,1790010584.415,4606,1689,2.815,-0.875,0.465,faster-whisper/small/int8,in my
+6,0,6000,12600,6600,1790010585.808,1790010585.812,1790010588.163,1790010588.164,2356,2351,0.356,-0.221,0.01,faster-whisper/small/int8,"In my last project I led a database migration from my SQL to Postgres over three months, with the team"
+7,1,6000,14600,8600,1790010587.808,1790010588.176,1790010590.019,1790010590.019,2211,1843,0.214,-0.078,0.001,faster-whisper/small/int8,"In my last project I led a database migration from my SQL to Postgres over 3 months, with a team of 5 engineers."
+8,0,15600,17200,1600,1790010590.408,1790010590.41,1790010592.015,1790010592.015,1607,1605,1.003,-0.411,0.075,faster-whisper/small/int8,The hardest bug was erasing
+9,0,15600,20200,4600,1790010593.408,1790010593.411,1790010595.994,1790010595.994,2586,2582,0.561,-0.103,0.019,faster-whisper/small/int8,"The hardest bug was a race condition in the payment queue, which I found by adding"
+10,1,15600,22000,6400,1790010595.208,1790010596.01,1790010598.131,1790010598.131,2923,2120,0.331,-0.037,0.0,faster-whisper/small/int8,"The hardest bug was a race condition in the payment queue, which I found by adding structured logging."

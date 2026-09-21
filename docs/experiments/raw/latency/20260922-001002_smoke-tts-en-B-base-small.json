@@ -1,0 +1,74 @@
+{
+  "label": "smoke-tts-en-B-base-small",
+  "started_at": "2026-09-22T00:10:02",
+  "config": {
+    "model_size": "small",
+    "partial_model_size": "base",
+    "compute_type": "int8",
+    "device": "cpu",
+    "cpu_threads": 12,
+    "language": "en",
+    "partial_beam_size": 1,
+    "final_beam_size": 2,
+    "condition_on_previous_text": false,
+    "partial_interval_ms": 1200,
+    "partial_window_s": 12.0,
+    "min_speech_ms_for_partial": 600,
+    "max_segment_s": 25.0,
+    "vad_threshold": 0.5,
+    "vad_min_silence_ms": 500,
+    "vad_speech_pad_ms": 200
+  },
+  "machine": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "machine": "AMD64",
+    "processor": "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD",
+    "python": "3.12.4",
+    "cpu_count": 12,
+    "faster_whisper": "1.2.0",
+    "ctranslate2": "4.8.2",
+    "onnxruntime": "1.30.0"
+  },
+  "summary": {
+    "label": "smoke-tts-en-B-base-small",
+    "events": 13,
+    "partial_latency_ms": {
+      "n": 9,
+      "mean": 1152.4,
+      "median": 989.0,
+      "p95": 1822.8,
+      "min": 827.0,
+      "max": 1920.0
+    },
+    "final_latency_ms": {
+      "n": 4,
+      "mean": 2192.2,
+      "median": 2149.5,
+      "p95": 2718.0,
+      "min": 1666.0,
+      "max": 2804.0
+    },
+    "partial_rtf": {
+      "n": 9,
+      "mean": 0.4,
+      "median": 0.3,
+      "p95": 0.8,
+      "min": 0.1,
+      "max": 0.8
+    },
+    "final_rtf": {
+      "n": 4,
+      "mean": 0.5,
+      "median": 0.4,
+      "p95": 0.8,
+      "min": 0.2,
+      "max": 0.9
+    },
+    "audio_seconds_transcribed_final": 20.0
+  },
+  "stats": {
+    "partials": 9,
+    "partials_skipped": 0,
+    "finals": 4
+  }
+}

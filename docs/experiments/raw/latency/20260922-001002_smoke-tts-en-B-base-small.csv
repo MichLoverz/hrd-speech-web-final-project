@@ -1,0 +1,14 @@
+seq,is_final,start_ms,end_ms,audio_duration_ms,chunk_received_at,inference_started_at,inference_ended_at,emitted_at,latency_ms,inference_ms,real_time_factor,avg_logprob,no_speech_prob,model,text
+1,0,0,1400,1400,1790010603.537,1790010603.54,1790010604.427,1790010604.427,889,886,0.633,-0.261,0.021,faster-whisper/base/int8,Good morning everyone.
+2,1,0,2000,2000,1790010604.137,1790010604.433,1790010606.206,1790010606.206,2068,1772,0.886,-0.192,0.018,faster-whisper/small/int8,Good morning everyone.
+3,0,2000,2600,600,1790010604.737,1790010606.212,1790010606.657,1790010606.657,1920,445,0.742,-0.64,0.294,faster-whisper/base/int8,Today we
+4,1,2000,5000,3000,1790010607.137,1790010607.141,1790010608.804,1790010608.804,1666,1663,0.554,-0.068,0.007,faster-whisper/small/int8,Today we will discuss speech recognition.
+5,0,6000,7600,1600,1790010609.737,1790010609.739,1790010610.564,1790010610.564,827,825,0.516,-0.473,0.113,faster-whisper/base/int8,In my last project I
+6,0,6000,9800,3800,1790010611.937,1790010611.942,1790010612.927,1790010612.927,989,984,0.259,-0.26,0.043,faster-whisper/base/int8,In my last project I led a database migration from my sql
+7,0,6000,12000,6000,1790010614.137,1790010614.141,1790010615.185,1790010615.186,1048,1043,0.174,-0.226,0.013,faster-whisper/base/int8,In my last project I led a database migration from my sql to post-gress over three months.
+8,0,6000,14400,8400,1790010616.537,1790010616.54,1790010617.654,1790010617.654,1116,1113,0.133,-0.208,0.012,faster-whisper/base/int8,"In my last project I led a database migration from my SQL to post-gress over three months, with a team of five engineers."
+9,1,6000,14600,8600,1790010616.737,1790010617.656,1790010619.542,1790010619.542,2804,1885,0.219,-0.078,0.001,faster-whisper/small/int8,"In my last project I led a database migration from my SQL to Postgres over 3 months, with a team of 5 engineers."
+10,0,15600,16200,600,1790010618.337,1790010619.552,1790010620.015,1790010620.015,1677,462,0.77,-0.914,0.435,faster-whisper/base/int8,The heart.
+11,0,15600,19200,3600,1790010621.337,1790010621.338,1790010622.257,1790010622.257,919,918,0.255,-0.214,0.044,faster-whisper/base/int8,"The hardest bug was a race condition in the payment queue, which"
+12,0,15600,21400,5800,1790010623.537,1790010623.538,1790010624.524,1790010624.524,987,986,0.17,-0.051,0.011,faster-whisper/base/int8,"The hardest bug was a race condition in the payment queue, which I found by adding structured logging."
+13,1,15600,22000,6400,1790010624.137,1790010624.532,1790010626.369,1790010626.369,2231,1836,0.287,-0.037,0.0,faster-whisper/small/int8,"The hardest bug was a race condition in the payment queue, which I found by adding structured logging."
