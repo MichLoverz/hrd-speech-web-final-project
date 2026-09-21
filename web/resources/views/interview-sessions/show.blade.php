@@ -8,6 +8,13 @@
 <x-page :title="'Wawancara: '.$session->candidate->name" :subtitle="$opening->title.' — pewawancara utama '.$session->interviewer->name" :back="route('interview-sessions.index')" back-label="Semua sesi">
     <x-slot:actions>
         <x-status :value="$session->status" class="mr-2" />
+        @can('update', $session)
+            @if ($session->status === 'draft')
+                <a href="{{ route('recording.consent', $session) }}" class="btn-primary">Mulai sesi</a>
+            @elseif ($session->status === 'recording')
+                <a href="{{ route('recording.show', $session) }}" class="btn-primary">Lanjutkan perekaman</a>
+            @endif
+        @endcan
         @can('delete', $session)
             @if ($session->status === 'draft')
                 <x-confirm-delete :action="route('interview-sessions.destroy', $session)" label="Hapus draf" confirm="Hapus sesi draf ini?" />
@@ -42,7 +49,15 @@
     <div class="sheet-section">
         <div class="flex flex-wrap items-baseline justify-between gap-3 mb-2">
             <h2>Pertanyaan dan jawaban</h2>
-            <p class="text-sm text-pencil">Perekaman per pertanyaan dan transkrip langsung tersedia di tahap berikutnya.</p>
+            @if ($session->answers->isNotEmpty())
+                @php $avg = $session->answers->whereNotNull('avg_latency_ms')->avg('avg_latency_ms'); @endphp
+                <p class="text-sm text-pencil">
+                    {{ $session->answers->count() }} jawaban terekam{{ $avg ? ', rata-rata latency final '.number_format($avg / 1000, 1, ',', '.').' s' : '' }}.
+                    Teks yang dikoreksi HRD dipakai untuk penilaian; teks asli ASR tetap disimpan.
+                </p>
+            @else
+                <p class="text-sm text-pencil">Belum ada jawaban terekam.</p>
+            @endif
         </div>
 
         @foreach ($opening->criteria as $criterion)
@@ -54,10 +69,46 @@
                 <ol class="mt-3 space-y-4 list-decimal pl-6 max-w-prose">
                     @forelse ($criterion->questions as $question)
                         @php $answer = $answersByQuestion->get($question->id); @endphp
-                        <li class="pl-1">
+                        <li class="pl-1" x-data="{ editing: false }">
                             <p>{{ $question->text }}</p>
-                            @if ($answer && $answer->transcript)
-                                <p class="transcript mt-2">{{ $answer->transcript }}</p>
+                            @if ($answer && ($answer->transcript !== null || $answer->audio_path))
+                                <p class="transcript mt-2" x-show="!editing">{{ $answer->transcript ?: '(transkrip kosong)' }}</p>
+                                @can('update', $session)
+                                    <form method="POST" action="{{ route('answers.transcript', $answer) }}" x-show="editing" x-cloak class="mt-2">
+                                        @csrf @method('PATCH')
+                                        <textarea name="transcript_edited" rows="4" class="field-textarea transcript">{{ old('transcript_edited', $answer->transcript) }}</textarea>
+                                        <div class="mt-2 flex items-center gap-3">
+                                            <button type="submit" class="btn-primary">Simpan koreksi</button>
+                                            <button type="button" class="text-sm underline" @click="editing = false">Batal</button>
+                                        </div>
+                                    </form>
+                                @endcan
+                                <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-pencil">
+                                    @if ($answer->transcript_edited !== null)
+                                        <span class="status status-warn">Dikoreksi HRD</span>
+                                    @endif
+                                    @if ($answer->model_used)
+                                        <span>{{ $answer->model_used }}{{ $answer->asr_mode === 'file' ? ' (dari rekaman)' : '' }}</span>
+                                    @endif
+                                    @if ($answer->avg_latency_ms !== null)
+                                        <span>latency final rata-rata {{ number_format($answer->avg_latency_ms / 1000, 1, ',', '.') }} s</span>
+                                    @endif
+                                    @if ($answer->duration_ms)
+                                        <span>{{ number_format($answer->duration_ms / 1000, 0) }} s audio</span>
+                                    @endif
+                                    @if ($answer->asr_prompt)
+                                        <span title="{{ $answer->asr_prompt }}">dengan prompt</span>
+                                    @endif
+                                    @can('update', $session)
+                                        <button type="button" class="row-action" @click="editing = !editing" x-text="editing ? 'Tutup' : 'Koreksi transkrip'"></button>
+                                        @if ($answer->audio_path)
+                                            <form method="POST" action="{{ route('answers.retranscribe', [$session, $question]) }}" class="inline" x-data @submit.prevent="if (confirm('Transkripsi ulang dari rekaman? Transkrip ASR saat ini akan diganti (koreksi HRD tetap disimpan).')) $el.submit()">
+                                                @csrf
+                                                <button type="submit" class="row-action">Transkripsi ulang</button>
+                                            </form>
+                                        @endif
+                                    @endcan
+                                </div>
                             @else
                                 <p class="mt-1 text-sm text-pencil">Belum ada jawaban terekam.</p>
                             @endif

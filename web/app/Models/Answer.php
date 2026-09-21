@@ -20,6 +20,9 @@ class Answer extends Model
         'duration_ms',
         'avg_latency_ms',
         'model_used',
+        'asr_mode',
+        'asr_prompt',
+        'transcribed_at',
     ];
 
     protected function casts(): array
@@ -27,6 +30,7 @@ class Answer extends Model
         return [
             'duration_ms' => 'integer',
             'avg_latency_ms' => 'integer',
+            'transcribed_at' => 'datetime',
         ];
     }
 

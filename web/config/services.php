@@ -28,6 +28,16 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // HireNote ASR / NLP service (services/, FastAPI). The browser talks to the
+    // WebSocket directly; Laravel only calls the HTTP endpoints.
+    'asr' => [
+        'http' => env('ASR_HTTP_URL', 'http://127.0.0.1:8765'),
+        'ws' => env('ASR_WS_URL', 'ws://127.0.0.1:8765/asr/stream'),
+        // Send the question text as Whisper's initial_prompt (contextual biasing). Switchable for experiments.
+        'use_prompt' => (bool) env('ASR_USE_PROMPT', true),
+        'timeout' => (int) env('ASR_HTTP_TIMEOUT', 300),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
