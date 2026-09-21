@@ -73,6 +73,7 @@ cd services
 py -3.12 -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
+python scripts/download_models.py      # model speaker embedding untuk pembedaan suara
 ```
 
 Setiap kali (dua terminal):

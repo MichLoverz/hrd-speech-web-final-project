@@ -28,6 +28,13 @@ Nama tampilan: Admin HireNote, Dewi Anggraini (HRD), Bagus Prasetyo (pewawancara
 |---|---|---|
 | OpenRouter (Fase 4, peringkasan kartu skor) | `OPENROUTER_API_KEY` | belum dibuat; `.env` sudah di-ignore git |
 
+## Model lokal yang harus ada (`services/models/`, git-ignored)
+
+| Model | Cara dapat |
+|---|---|
+| faster-whisper `base` dan `small` | otomatis saat service pertama jalan |
+| Speaker embedding `3dspeaker_speech_eres2net_base_sv_zh-cn_3dspeaker_16k.onnx` | `python scripts/download_models.py` (di `services/`, venv aktif) |
+
 ## Data contoh (seeder)
 
 - Lowongan: Backend Developer (Rp 7–11 jt), Customer Support Specialist (Rp 4,5–6 jt).
