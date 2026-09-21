@@ -2,7 +2,10 @@
     <div class="sheet-section max-w-prose">
         @if ($already)
             <p class="status status-done mb-4">Persetujuan sudah tercatat untuk sesi ini.</p>
-            <a href="{{ route('recording.show', $session) }}" class="btn-primary">Lanjut ke perekaman</a>
+            <div class="flex flex-wrap items-center gap-3">
+                <a href="{{ route('live.show', $session) }}" class="btn-primary">Lanjut ke wawancara</a>
+                <a href="{{ route('recording.show', $session) }}" class="text-sm">mode rekam per pertanyaan</a>
+            </div>
         @else
             <p class="mb-4">Bacakan atau tunjukkan teks berikut kepada kandidat sebelum wawancara dimulai. Versi teks: <span class="text-pencil">{{ App\Models\Consent::CURRENT_TEXT_VERSION }}</span>.</p>
 
@@ -14,6 +17,7 @@
 
             <form method="POST" action="{{ route('recording.consent.store', $session) }}">
                 @csrf
+                <input type="hidden" name="mode" value="{{ $mode }}">
                 <label class="flex items-start gap-3 text-base">
                     <input type="checkbox" name="agree" value="1" class="field-checkbox mt-1" required>
                     <span>Kandidat <span class="font-semibold">{{ $session->candidate->name }}</span> telah mendengar penjelasan di atas dan menyetujui perekaman.</span>
@@ -22,9 +26,13 @@
 
                 <p class="mt-3 text-sm text-pencil">Yang dicatat: waktu persetujuan, alamat IP perangkat ini, dan versi teks persetujuan.</p>
 
-                <div class="mt-6 flex items-center gap-3">
+                <div class="mt-6 flex flex-wrap items-center gap-3">
                     <button type="submit" class="btn-primary">Catat persetujuan dan mulai</button>
                     <a href="{{ route('interview-sessions.show', $session) }}" class="text-sm">Batal</a>
+                    <span class="text-sm text-pencil">
+                        Mode: {{ $mode === 'question' ? 'rekam per pertanyaan' : 'wawancara utuh dengan pembedaan suara' }}
+                        · <a href="{{ route('recording.consent', [$session, 'mode' => $mode === 'question' ? 'interview' : 'question']) }}">ganti</a>
+                    </span>
                 </div>
             </form>
         @endif

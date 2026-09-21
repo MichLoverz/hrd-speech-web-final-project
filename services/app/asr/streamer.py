@@ -262,6 +262,10 @@ class StreamingTranscriber:
             fut.result(timeout=timeout)
         self._pending_finals.clear()
 
+    def finalize_speakers(self) -> dict[int, str]:
+        """After the last final: re-cluster all speaker embeddings; returns {segment_id: label} corrections."""
+        return self.diarizer.finalize() if self.diarizer else {}
+
     def close(self) -> None:
         self._partial_lane.shutdown(wait=True, cancel_futures=True)
         self._final_lane.shutdown(wait=True)
@@ -346,7 +350,7 @@ class StreamingTranscriber:
 
     def _run_final(self, audio: np.ndarray, snap: _Snapshot) -> None:
         # Speaker first (cheap, ~70 ms) so the label is known before the question tracker runs.
-        speaker = self.diarizer.assign(audio) if self.diarizer else None
+        speaker = self.diarizer.assign(audio, segment_id=snap.id) if self.diarizer else None
         result = self.engine.transcribe(audio, final=True, initial_prompt=self.initial_prompt,
                                         language=self.config.language)
         self.stats["finals"] += 1

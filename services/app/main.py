@@ -21,6 +21,8 @@ server -> client
          "chunk_received_at":.., "emitted_at":.., "real_time_factor":.., "model":..,
          "last_chunk_client_ms":.., "speaker":.., "speaker_similarity":.., "question_id":.., ...}
   text  {"type":"question_change", "question_id":.., "reason":"match|phrase|manual", "score":..}
+  text  {"type":"speaker_relabel", "labels":{"<segment_id>":"interviewer|candidate", ...}}
+        sent once after stop, when re-clustering all embeddings changed some online labels
   text  {"type":"done", "stats":{...}}
   text  {"type":"error", "message":...}
 
@@ -192,7 +194,11 @@ async def asr_stream(ws: WebSocket) -> None:
                 if transcriber is not None:
                     await loop.run_in_executor(None, transcriber.flush)
                     await loop.run_in_executor(None, transcriber.wait)
-                    await outbox.put({"type": "done", "stats": transcriber.stats})
+                    relabel = await loop.run_in_executor(None, transcriber.finalize_speakers)
+                    if relabel:
+                        await outbox.put({"type": "speaker_relabel", "labels": {str(k): v for k, v in relabel.items()}})
+                    stats = {**transcriber.stats, "speaker_relabels": len(relabel)}
+                    await outbox.put({"type": "done", "stats": stats})
                     transcriber.close()
                     transcriber = None
             else:

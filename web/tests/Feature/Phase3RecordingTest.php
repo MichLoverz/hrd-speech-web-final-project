@@ -46,7 +46,7 @@ class Phase3RecordingTest extends TestCase
             ->assertRedirect(route('recording.consent', $this->session));
 
         $this->actingAs($this->hrd)
-            ->post(route('recording.consent.store', $this->session), ['agree' => '1'])
+            ->post(route('recording.consent.store', $this->session), ['agree' => '1', 'mode' => 'question'])
             ->assertRedirect(route('recording.show', $this->session));
 
         $this->session->refresh();

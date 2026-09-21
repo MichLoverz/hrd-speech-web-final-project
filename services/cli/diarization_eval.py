@@ -99,11 +99,13 @@ def main() -> None:
     correct = total = 0
     confusion = {}
     t_embed = 0
+    preds, truth_list = [], []
     for i, (s, e) in enumerate(segs):
         seg_owner = owner[s:e]
         counts = np.bincount(seg_owner[seg_owner >= 0], minlength=2)
         truth = "interviewer" if counts[0] >= counts[1] else "candidate"
-        d = diar.assign(audio[s:e])
+        d = diar.assign(audio[s:e], segment_id=i)
+        preds.append(d.label); truth_list.append(truth)
         t_embed += d.embed_ms
         ok = d.label == truth
         if d.label != "unknown":
@@ -117,6 +119,13 @@ def main() -> None:
     print(f"\nlabel accuracy: {correct}/{total} = {correct/max(total,1):.3f}   embed time total {t_embed} ms "
           f"(avg {t_embed/max(len(segs),1):.0f} ms/segment)")
     print("confusion (truth -> pred):", {f"{k[0]}->{k[1]}": v for k, v in confusion.items()})
+
+    # Post-hoc re-clustering, exactly as done when the interview ends.
+    changes = diar.finalize()
+    final_labels = [changes.get(i, preds[i]) for i in range(len(segs))]
+    ok = sum(1 for i in range(len(segs)) if final_labels[i] == truth_list[i])
+    print(f"after finalize(): {ok}/{len(segs)} = {ok / len(segs):.3f}   relabelled {len(changes)}: "
+          + ", ".join(f"#{k}->{v}" for k, v in changes.items()))
 
 
 if __name__ == "__main__":

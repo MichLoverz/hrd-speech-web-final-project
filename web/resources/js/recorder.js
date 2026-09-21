@@ -14,8 +14,7 @@
  * The service's own latency_ms (its clock) is stored alongside in the database.
  */
 
-const SAMPLE_RATE = 16000;
-const CHUNK_MS = 200;
+import { openMic, frameWithTimestamp, levelPercent, encodeWav, SAMPLE_RATE } from './capture';
 
 export default function recorder(opts) {
     return {
@@ -43,7 +42,7 @@ export default function recorder(opts) {
         elapsed: 0,
 
         // --- internals (not reactive-critical)
-        _ws: null, _ctx: null, _node: null, _stream: null, _pcmChunks: [], _timer: null, _startedAt: 0,
+        _ws: null, _mic: null, _pcmChunks: [], _timer: null, _startedAt: 0,
         _prompt: '', _doneResolve: null, _partialTimer: null,
 
         get question() { return this.questions[this.current]; },
@@ -118,20 +117,8 @@ export default function recorder(opts) {
         },
 
         async openMic() {
-            this._stream = await navigator.mediaDevices.getUserMedia({
-                audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-            });
-            // Ask for 16 kHz; if the browser refuses, the worklet resamples.
-            this._ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: SAMPLE_RATE });
-            await this._ctx.audioWorklet.addModule('/audio/pcm-processor.js');
-            const source = this._ctx.createMediaStreamSource(this._stream);
-            this._node = new AudioWorkletNode(this._ctx, 'pcm-processor', {
-                numberOfInputs: 1, numberOfOutputs: 0, channelCount: 1,
-                processorOptions: { targetRate: SAMPLE_RATE, chunkSamples: Math.round(SAMPLE_RATE * CHUNK_MS / 1000) },
-            });
-            this._node.port.onmessage = (e) => this.onChunk(e.data);
-            source.connect(this._node);
-            this.contextRate = this._ctx.sampleRate;
+            this._mic = await openMic((buf) => this.onChunk(buf));
+            this.contextRate = this._mic.contextRate;
         },
 
         openSocket() {
@@ -166,21 +153,10 @@ export default function recorder(opts) {
             if (this.state !== 'listening') return;
             this._pcmChunks.push(new Int16Array(arrayBuffer));
             this.updateLevel(new Int16Array(arrayBuffer));
-            if (this._ws && this._ws.readyState === WebSocket.OPEN) {
-                // 8-byte little-endian float64 client timestamp + PCM. The service echoes it back.
-                const frame = new ArrayBuffer(8 + arrayBuffer.byteLength);
-                new DataView(frame).setFloat64(0, Date.now(), true);
-                new Uint8Array(frame, 8).set(new Uint8Array(arrayBuffer));
-                this._ws.send(frame);
-            }
+            if (this._ws && this._ws.readyState === WebSocket.OPEN) this._ws.send(frameWithTimestamp(arrayBuffer));
         },
 
-        updateLevel(pcm) {
-            let sum = 0;
-            for (let i = 0; i < pcm.length; i += 8) sum += Math.abs(pcm[i]);
-            const avg = sum / (pcm.length / 8) / 32768;
-            this.levelPct = Math.min(100, Math.round(avg * 400));
-        },
+        updateLevel(pcm) { this.levelPct = levelPercent(pcm); },
 
         onEvent(msg) {
             if (msg.type === 'partial' || msg.type === 'final') {
@@ -215,7 +191,7 @@ export default function recorder(opts) {
             clearInterval(this._timer);
 
             // Flush the worklet's last partial chunk, then tear the mic down.
-            this._node && this._node.port.postMessage('flush');
+            this._mic && this._mic.flush();
             await new Promise(r => setTimeout(r, 60));
             this.closeMic();
 
@@ -244,10 +220,8 @@ export default function recorder(opts) {
         },
 
         closeMic() {
-            try { this._node && this._node.disconnect(); } catch {}
-            try { this._stream && this._stream.getTracks().forEach(t => t.stop()); } catch {}
-            try { this._ctx && this._ctx.close(); } catch {}
-            this._node = null; this._stream = null; this._ctx = null;
+            this._mic && this._mic.close();
+            this._mic = null;
             this.levelPct = 0;
         },
 
@@ -306,19 +280,4 @@ export default function recorder(opts) {
             }[this.state];
         },
     };
-}
-
-/** PCM Int16 chunks → 16-bit mono WAV (RIFF) ArrayBuffer. */
-function encodeWav(chunks, sampleRate) {
-    const total = chunks.reduce((n, c) => n + c.length, 0);
-    const buffer = new ArrayBuffer(44 + total * 2);
-    const v = new DataView(buffer);
-    const str = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
-    str(0, 'RIFF'); v.setUint32(4, 36 + total * 2, true); str(8, 'WAVE');
-    str(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
-    v.setUint32(24, sampleRate, true); v.setUint32(28, sampleRate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
-    str(36, 'data'); v.setUint32(40, total * 2, true);
-    let off = 44;
-    for (const c of chunks) { for (let i = 0; i < c.length; i++, off += 2) v.setInt16(off, c[i], true); }
-    return buffer;
 }

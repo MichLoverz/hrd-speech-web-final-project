@@ -24,6 +24,11 @@ class InterviewSession extends Model
         'ended_at',
         'status',
         'notes',
+        'recording_mode',
+        'audio_path',
+        'audio_duration_ms',
+        'asr_model',
+        'speaker_model',
     ];
 
     protected function casts(): array
@@ -60,6 +65,12 @@ class InterviewSession extends Model
     public function consents(): HasMany
     {
         return $this->hasMany(Consent::class);
+    }
+
+    /** All transcript segments of the session (continuous-interview mode), in stream order. */
+    public function transcriptSegments(): HasMany
+    {
+        return $this->hasMany(TranscriptSegment::class)->orderBy('start_ms')->orderBy('id');
     }
 
     /** Human scorecards, one per rater. */

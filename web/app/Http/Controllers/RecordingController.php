@@ -22,6 +22,7 @@ class RecordingController extends Controller
         return view('recording.consent', [
             'session' => $interviewSession->load('candidate'),
             'already' => $interviewSession->hasConsent(),
+            'mode' => request()->query('mode') === 'question' ? 'question' : 'interview',
         ]);
     }
 
@@ -41,11 +42,14 @@ class RecordingController extends Controller
             ]);
         }
 
-        if ($interviewSession->status === 'draft') {
-            $interviewSession->update(['status' => 'recording', 'started_at' => now()]);
-        }
+        $mode = $request->input('mode') === 'question' ? 'question' : 'interview';
+        $interviewSession->update(array_filter([
+            'recording_mode' => $mode,
+            'status' => $interviewSession->status === 'draft' ? 'recording' : null,
+            'started_at' => $interviewSession->started_at ?? now(),
+        ]));
 
-        return redirect()->route('recording.show', $interviewSession);
+        return redirect()->route($mode === 'question' ? 'recording.show' : 'live.show', $interviewSession);
     }
 
     /** The recording page: one question at a time, live transcript. */

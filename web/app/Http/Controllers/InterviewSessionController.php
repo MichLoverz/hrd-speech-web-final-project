@@ -113,6 +113,7 @@ class InterviewSessionController extends Controller
             'analysisResult',
             'manualAssessments.rater',
             'manualAssessments.scores',
+            'transcriptSegments',
         ]);
 
         $user = $request->user();

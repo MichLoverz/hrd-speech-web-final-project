@@ -5,18 +5,25 @@ Every speech segment the VAD produces is turned into a *speaker embedding*
 (a vector describing the voice, not the words) with an ONNX model via
 sherpa-onnx. Segments are assigned to one of two centroids:
 
-  speaker 0 = "interviewer"  — whoever speaks first (the interviewer opens
-                               the session and reads the first question)
-  speaker 1 = "candidate"    — the first voice that is clearly different
+  speaker 0 = "interviewer"  — the first *substantial* voice (the interviewer
+                               opens the session and reads the first question)
+  speaker 1 = "candidate"    — the first substantial voice that is clearly different
 
-Assignment = cosine similarity to each centroid. A centroid is updated with
-a running mean of the embeddings assigned to it, so it sharpens as the
-interview goes on. Segments shorter than `min_embed_s` are too short for a
-reliable embedding and inherit the previous label with low confidence.
+Assignment = cosine similarity to each centroid; a centroid is a running
+mean of the embeddings assigned to it. Only segments of at least
+`min_open_s` may *open* a centroid: the 2026-09-22 browser test showed that
+a 1.2 s "Good morning" run through Chrome's noise suppression made a poor
+first centroid and every later label went wrong. Shorter segments are
+labelled by nearest centroid but never update it.
+
+Because online assignment is greedy and cannot undo early mistakes,
+`finalize()` re-clusters every stored embedding (2-means) at the end of the
+interview and returns the segments whose label changed. The consumer sends
+those corrections downstream (the browser re-uploads them).
 
 Limits (documented for the report): overlapping speech gets one label;
-two very similar voices in a noisy room can be confused; the first few
-segments may be relabelled in hindsight only by the post-hoc correction UI.
+two very similar voices in a noisy room can be confused; corrections after
+finalize() may still need the post-hoc UI.
 """
 
 from __future__ import annotations
@@ -42,7 +49,7 @@ class SpeakerDecision:
     similarity: float | None   # cosine similarity to the chosen centroid
     margin: float | None       # similarity(best) - similarity(other); small = uncertain
     embed_ms: int              # time spent computing the embedding
-    reason: str                # first | new_speaker | assigned | too_short
+    reason: str                # first | new_speaker | assigned | short | pending | peek*
 
 
 class OnlineDiarizer:
@@ -51,7 +58,8 @@ class OnlineDiarizer:
         model_file: str | Path = SPEAKER_MODEL_DIR / DEFAULT_SPEAKER_MODEL,
         *,
         new_speaker_threshold: float = 0.55,   # below this vs the only centroid -> open the second speaker
-        min_embed_s: float = 1.0,
+        min_embed_s: float = 1.0,              # shorter than this: no embedding at all
+        min_open_s: float = 2.0,               # shorter than this: may be labelled, may not open a centroid
         num_threads: int = 2,
     ):
         cfg = sherpa_onnx.SpeakerEmbeddingExtractorConfig(
@@ -63,9 +71,12 @@ class OnlineDiarizer:
         self.model_name = Path(model_file).name
         self.new_speaker_threshold = new_speaker_threshold
         self.min_embed_s = min_embed_s
+        self.min_open_s = min_open_s
         self.centroids: list[np.ndarray] = []
         self.counts: list[int] = []
         self._last_index: int | None = None
+        # Everything seen, for finalize(): (segment_id, embedding, duration_s, online_index)
+        self._history: list[tuple[int, np.ndarray, float, int | None]] = []
 
     # ---------------------------------------------------------------- api
 
@@ -76,60 +87,112 @@ class OnlineDiarizer:
         vec = np.asarray(self.extractor.compute(stream), dtype=np.float32)
         return vec / (np.linalg.norm(vec) + 1e-9)
 
-    def assign(self, audio: np.ndarray) -> SpeakerDecision:
+    def assign(self, audio: np.ndarray, segment_id: int = 0) -> SpeakerDecision:
+        """Label a FINAL segment and (if it is long enough) learn from it."""
         t0 = time.time()
-        if len(audio) < int(self.min_embed_s * SAMPLE_RATE):
-            idx = self._last_index
-            return SpeakerDecision(
-                label=LABELS[idx] if idx is not None else "unknown",
-                speaker_index=idx, similarity=None, margin=None,
-                embed_ms=0, reason="too_short",
-            )
+        dur = len(audio) / SAMPLE_RATE
+        if dur < self.min_embed_s:
+            return self._inherit("short")
 
         vec = self.embed(audio)
         embed_ms = int((time.time() - t0) * 1000)
+        can_open = dur >= self.min_open_s
 
         if not self.centroids:
+            if not can_open:
+                self._history.append((segment_id, vec, dur, None))
+                return SpeakerDecision("unknown", None, None, None, embed_ms, "pending")
             self._add(vec)
             self._last_index = 0
+            self._history.append((segment_id, vec, dur, 0))
             return SpeakerDecision("interviewer", 0, None, None, embed_ms, "first")
 
         sims = [float(vec @ c) for c in self.centroids]
         best = int(np.argmax(sims))
 
-        if len(self.centroids) == 1 and sims[0] < self.new_speaker_threshold:
+        if len(self.centroids) == 1 and sims[0] < self.new_speaker_threshold and can_open:
             self._add(vec)
             self._last_index = 1
+            self._history.append((segment_id, vec, dur, 1))
             return SpeakerDecision("candidate", 1, sims[0], None, embed_ms, "new_speaker")
 
-        self._update(best, vec)
+        if can_open:
+            self._update(best, vec)
         self._last_index = best
+        self._history.append((segment_id, vec, dur, best))
         margin = (sims[best] - min(sims)) if len(sims) > 1 else None
-        return SpeakerDecision(LABELS[best], best, sims[best], margin, embed_ms, "assigned")
+        return SpeakerDecision(LABELS[best], best, sims[best], margin, embed_ms, "assigned" if can_open else "assigned_short")
 
     def peek(self, audio: np.ndarray) -> SpeakerDecision:
         """Label without learning: used for partials so the same audio is not counted twice."""
         if not self.centroids or len(audio) < int(self.min_embed_s * SAMPLE_RATE):
-            idx = self._last_index
-            return SpeakerDecision(LABELS[idx] if idx is not None else "unknown", idx, None, None, 0, "peek_short")
+            return self._inherit("peek_short")
         t0 = time.time()
         vec = self.embed(audio)
         sims = [float(vec @ c) for c in self.centroids]
         best = int(np.argmax(sims))
         if len(self.centroids) == 1 and sims[0] < self.new_speaker_threshold:
-            # Probably the second speaker, but only a final may open a new centroid.
             return SpeakerDecision("candidate", 1, sims[0], None, int((time.time() - t0) * 1000), "peek_new")
         margin = (sims[best] - min(sims)) if len(sims) > 1 else None
         return SpeakerDecision(LABELS[best], best, sims[best], margin, int((time.time() - t0) * 1000), "peek")
+
+    def finalize(self, iterations: int = 10) -> dict[int, str]:
+        """
+        Re-cluster all stored embeddings into two speakers (2-means, cosine).
+        The cluster holding the first segment that was long enough to open a
+        centroid is the interviewer. Returns {segment_id: new_label} for
+        segments whose label differs from the online decision.
+        """
+        if len(self._history) < 2:
+            return {}
+        X = np.stack([h[1] for h in self._history])
+        # Init from the online centroids when both exist, else the farthest pair.
+        if len(self.centroids) == 2:
+            C = np.stack(self.centroids)
+        else:
+            i0 = 0
+            i1 = int(np.argmin(X @ X[i0]))
+            C = np.stack([X[i0], X[i1]])
+        for _ in range(iterations):
+            labels = np.argmax(X @ C.T, axis=1)
+            newC = []
+            for k in range(2):
+                members = X[labels == k]
+                if len(members) == 0:
+                    newC.append(C[k])
+                    continue
+                m = members.mean(axis=0)
+                newC.append(m / (np.linalg.norm(m) + 1e-9))
+            newC = np.stack(newC)
+            if np.allclose(newC, C, atol=1e-5):
+                break
+            C = newC
+        labels = np.argmax(X @ C.T, axis=1)
+
+        # Which cluster is the interviewer? The first substantial segment.
+        first_idx = next((i for i, h in enumerate(self._history) if h[2] >= self.min_open_s), 0)
+        interviewer_cluster = int(labels[first_idx])
+
+        changes: dict[int, str] = {}
+        for (segment_id, _vec, _dur, online_idx), k in zip(self._history, labels):
+            new_label = "interviewer" if k == interviewer_cluster else "candidate"
+            old_label = LABELS[online_idx] if online_idx is not None else "unknown"
+            if new_label != old_label:
+                changes[segment_id] = new_label
+        return changes
 
     @property
     def current_label(self) -> str:
         return LABELS[self._last_index] if self._last_index is not None else "unknown"
 
     def reset(self) -> None:
-        self.centroids, self.counts, self._last_index = [], [], None
+        self.centroids, self.counts, self._last_index, self._history = [], [], None, []
 
     # ----------------------------------------------------------- internals
+
+    def _inherit(self, reason: str) -> SpeakerDecision:
+        idx = self._last_index
+        return SpeakerDecision(LABELS[idx] if idx is not None else "unknown", idx, None, None, 0, reason)
 
     def _add(self, vec: np.ndarray) -> None:
         self.centroids.append(vec.copy())

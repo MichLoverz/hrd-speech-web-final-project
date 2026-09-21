@@ -7,6 +7,7 @@ use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\CriterionController;
 use App\Http\Controllers\InterviewSessionController;
 use App\Http\Controllers\JobOpeningController;
+use App\Http\Controllers\LiveInterviewController;
 use App\Http\Controllers\ManualAssessmentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuestionController;
@@ -38,6 +39,14 @@ Route::middleware('auth')->group(function () {
     Route::post('interview-sessions/{interviewSession}/answers/{question}/audio', [AnswerController::class, 'audio'])->name('answers.audio');
     Route::post('interview-sessions/{interviewSession}/answers/{question}/retranscribe', [AnswerController::class, 'retranscribe'])->name('answers.retranscribe');
     Route::patch('answers/{answer}/transcript', [AnswerController::class, 'updateTranscript'])->name('answers.transcript');
+
+    // Continuous-interview mode (ADR-007): diarization + automatic question tracking, saved as it goes.
+    Route::get('interview-sessions/{interviewSession}/live', [LiveInterviewController::class, 'show'])->name('live.show');
+    Route::post('interview-sessions/{interviewSession}/live/segments', [LiveInterviewController::class, 'segments'])->name('live.segments');
+    Route::post('interview-sessions/{interviewSession}/live/audio', [LiveInterviewController::class, 'audio'])->name('live.audio');
+    Route::post('interview-sessions/{interviewSession}/live/finish', [LiveInterviewController::class, 'finish'])->name('live.finish');
+    Route::post('interview-sessions/{interviewSession}/live/rebuild', [LiveInterviewController::class, 'rebuild'])->name('live.rebuild');
+    Route::patch('segments/{segment}', [LiveInterviewController::class, 'updateSegment'])->name('segments.update');
 
     // Criteria and questions are edited inline from the job opening page.
     Route::middleware('role:hrd')->group(function () {

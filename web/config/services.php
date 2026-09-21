@@ -36,6 +36,10 @@ return [
         // Send the question text as Whisper's initial_prompt (contextual biasing). Switchable for experiments.
         'use_prompt' => (bool) env('ASR_USE_PROMPT', true),
         'timeout' => (int) env('ASR_HTTP_TIMEOUT', 300),
+        // Phrases the interviewer can say to move to the next question (continuous mode).
+        // Matched fuzzily on the interviewer's transcript; the question text itself is matched too.
+        'trigger_phrases' => array_values(array_filter(array_map('trim', explode('|', env('ASR_TRIGGER_PHRASES',
+            'lanjut ke pertanyaan berikutnya|pertanyaan berikutnya|pertanyaan selanjutnya|lanjut ke pertanyaan selanjutnya|next question|pertanyaan terakhir'))))),
     ],
 
     'slack' => [

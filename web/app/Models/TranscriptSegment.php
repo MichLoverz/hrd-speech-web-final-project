@@ -12,6 +12,13 @@ class TranscriptSegment extends Model
 
     protected $fillable = [
         'answer_id',
+        'interview_session_id',
+        'question_id',
+        'speaker',
+        'speaker_similarity',
+        'speaker_edited',
+        'client_seq',
+        'question_reason',
         'text',
         'start_ms',
         'end_ms',
@@ -31,6 +38,8 @@ class TranscriptSegment extends Model
     {
         return [
             'is_final' => 'boolean',
+            'speaker_edited' => 'boolean',
+            'speaker_similarity' => 'float',
             'confidence' => 'float',
             'chunk_received_at' => 'datetime',
             'inference_started_at' => 'datetime',
@@ -46,5 +55,15 @@ class TranscriptSegment extends Model
     public function answer(): BelongsTo
     {
         return $this->belongsTo(Answer::class);
+    }
+
+    public function interviewSession(): BelongsTo
+    {
+        return $this->belongsTo(InterviewSession::class);
+    }
+
+    public function question(): BelongsTo
+    {
+        return $this->belongsTo(Question::class);
     }
 }

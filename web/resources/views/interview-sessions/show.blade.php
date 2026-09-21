@@ -10,9 +10,9 @@
         <x-status :value="$session->status" class="mr-2" />
         @can('update', $session)
             @if ($session->status === 'draft')
-                <a href="{{ route('recording.consent', $session) }}" class="btn-primary">Mulai sesi</a>
+                <a href="{{ route('recording.consent', $session) }}" class="btn-primary">Mulai wawancara</a>
             @elseif ($session->status === 'recording')
-                <a href="{{ route('recording.show', $session) }}" class="btn-primary">Lanjutkan perekaman</a>
+                <a href="{{ route($session->recording_mode === 'question' ? 'recording.show' : 'live.show', $session) }}" class="btn-primary">Lanjutkan wawancara</a>
             @endif
         @endcan
         @can('delete', $session)
@@ -120,6 +120,68 @@
             </section>
         @endforeach
     </div>
+
+    {{-- Continuous-mode segments: who said what, under which question; correctable --}}
+    @if ($session->recording_mode === 'interview' && $session->transcriptSegments->where('is_final', true)->isNotEmpty())
+        @php
+            $finals = $session->transcriptSegments->where('is_final', true)->sortBy(['start_ms', 'id']);
+            $questionOptions = $opening->criteria->flatMap->questions;
+            $canFix = auth()->user()->can('update', $session);
+        @endphp
+        <div class="sheet-section" x-data="{ fixing: false }">
+            <div class="flex flex-wrap items-baseline justify-between gap-3 mb-2">
+                <h2>Rekaman utuh</h2>
+                <div class="flex flex-wrap items-center gap-4 text-sm">
+                    <span class="text-pencil">{{ $finals->count() }} segmen · {{ $finals->where('speaker', 'candidate')->count() }} kandidat · {{ $finals->where('speaker', 'interviewer')->count() }} pewawancara{{ $session->audio_duration_ms ? ' · '.gmdate('i:s', (int) ($session->audio_duration_ms / 1000)).' audio' : '' }}</span>
+                    @if ($canFix)
+                        <button type="button" class="row-action" @click="fixing = !fixing" x-text="fixing ? 'Selesai mengoreksi' : 'Koreksi label / pertanyaan'"></button>
+                        <form method="POST" action="{{ route('live.rebuild', $session) }}" class="inline">
+                            @csrf
+                            <button type="submit" class="row-action">Bangun ulang jawaban</button>
+                        </form>
+                    @endif
+                </div>
+            </div>
+            <p class="text-sm text-pencil mb-4 max-w-prose">Label pembicara dan pertanyaan ditentukan otomatis (pembedaan suara + pencocokan teks pertanyaan). Kalau ada yang salah alamat, koreksi di sini lalu bangun ulang jawaban.</p>
+
+            <ol class="space-y-2 max-w-prose">
+                @foreach ($finals as $seg)
+                    @php $q = $questionOptions->firstWhere('id', $seg->question_id); @endphp
+                    <li class="grid grid-cols-[92px_1fr] gap-3 items-start text-sm">
+                        <span class="pt-0.5 {{ $seg->speaker === 'candidate' ? 'font-semibold text-ink' : 'text-pencil' }}">
+                            {{ $seg->speaker === 'candidate' ? 'Kandidat' : ($seg->speaker === 'interviewer' ? 'Pewawancara' : '?') }}
+                            @if ($seg->speaker_edited)<span class="text-xs text-pencil">(dikoreksi)</span>@endif
+                        </span>
+                        <div>
+                            <span class="transcript {{ $seg->speaker === 'candidate' ? '' : 'text-ink-soft' }}">{{ $seg->text }}</span>
+                            <span class="block text-xs text-pencil mt-0.5">
+                                {{ gmdate('i:s', (int) ($seg->start_ms / 1000)) }}
+                                @if ($q) · P{{ $questionOptions->search(fn ($x) => $x->id === $q->id) + 1 }}{{ $seg->question_reason === 'edited' ? ' (dikoreksi)' : '' }} @else · tanpa pertanyaan @endif
+                                @if ($seg->speaker_similarity !== null) · kemiripan suara {{ number_format($seg->speaker_similarity, 2) }} @endif
+                            </span>
+                            @if ($canFix)
+                                <form method="POST" action="{{ route('segments.update', $seg) }}" x-show="fixing" x-cloak class="mt-1 flex flex-wrap items-center gap-2">
+                                    @csrf @method('PATCH')
+                                    <select name="speaker" class="field-select w-auto py-1 text-xs">
+                                        @foreach (['interviewer' => 'Pewawancara', 'candidate' => 'Kandidat', 'unknown' => '?'] as $v => $l)
+                                            <option value="{{ $v }}" @selected($seg->speaker === $v)>{{ $l }}</option>
+                                        @endforeach
+                                    </select>
+                                    <select name="question_id" class="field-select w-auto py-1 text-xs max-w-[320px]">
+                                        <option value="">tanpa pertanyaan</option>
+                                        @foreach ($questionOptions as $i => $opt)
+                                            <option value="{{ $opt->id }}" @selected($seg->question_id === $opt->id)>P{{ $i + 1 }}. {{ Str::limit($opt->text, 50) }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button type="submit" class="btn-quiet py-1 text-xs">Simpan</button>
+                                </form>
+                            @endif
+                        </div>
+                    </li>
+                @endforeach
+            </ol>
+        </div>
+    @endif
 
     {{-- My manual scorecard --}}
     <div class="sheet-section" id="penilaian">
