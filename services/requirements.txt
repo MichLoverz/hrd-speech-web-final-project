@@ -18,5 +18,8 @@ python-multipart>=0.0.9,<1   # form/file uploads for /asr/transcribe
 requests>=2.31,<3            # transitive dep of faster-whisper that pip once skipped on this machine
 websockets>=12,<14
 
+# --- NLP (phase 4) ---
+fastembed==0.8.1            # sentence embeddings on ONNX (no PyTorch); adds no new versions of onnxruntime/numpy/tokenizers
+
 # --- evaluation (phase 6) ---
 jiwer>=3.0,<4

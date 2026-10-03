@@ -36,6 +36,8 @@ app/
     vad.py            Silero VAD per frame 32 ms (ONNX bawaan faster-whisper, tanpa PyTorch)
     streamer.py       StreamingTranscriber: ring buffer, partial/final, instrumentasi latency
     metrics.py        agregasi latency/RTF, tulis CSV/JSON
+  nlp/
+    embedder.py       embedding kalimat (fastembed/ONNX, tanpa PyTorch) untuk kartu skor; dimuat saat dipakai pertama kali
 cli/
   mic_demo.py         mikrofon → terminal
   file_demo.py        WAV → terminal, dipacu seperti live
@@ -49,3 +51,15 @@ cli/
 4. Tiap 1,2 s bicara: transkripsi ≤12 s terakhir dari buffer → **partial** (greedy, beam 1). Kalau inference sebelumnya masih jalan, partial dilewati — tidak pernah mengantri.
 5. Jeda ≥500 ms (atau segmen ≥25 s): transkripsi seluruh segmen → **final** (beam 2), buffer dikosongkan.
 6. Tiap emit mencatat `chunk_received_at`, `inference_started_at`, `inference_ended_at`, `emitted_at`, `latency_ms`, `real_time_factor`.
+
+## Embedding untuk kartu skor (Fase 4, ADR-008)
+
+`POST /nlp/embed` dengan body `{"texts": [...], "kind": "query"|"passage", "model": null}` mengembalikan vektor ternormalisasi (cosine = dot product). Retrieval bukti dan verifikasi kutipan berjalan di Laravel (`web/app/Services/Nlp/`); service hanya menghitung vektor.
+
+- Model bawaan: `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (versi ONNX terkuantisasi dari Qdrant, 0,22 GB), diunduh ke `services/models/embed/` saat permintaan pertama (±16 s). Ganti lewat env `HIRENOTE_EMBED_MODEL` di service atau `NLP_EMBED_MODEL` di Laravel; hanya model di `ALLOWED_MODELS` yang diterima.
+- **Tidak dimuat saat startup**, jadi startup dan streaming ASR sama persis seperti sebelum Fase 4.
+- Peringatan symlink dari `huggingface_hub` di Windows tidak berbahaya; cache tetap jalan, hanya memakai sedikit lebih banyak ruang disk.
+
+```powershell
+curl.exe -s -X POST http://127.0.0.1:8765/nlp/embed -H "Content-Type: application/json" -d '{\"texts\":[\"halo\"]}'
+```

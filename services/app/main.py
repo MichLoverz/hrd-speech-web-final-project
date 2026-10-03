@@ -34,6 +34,14 @@ Models are loaded once at startup and shared; each connection gets its own
 StreamingTranscriber (VAD state + buffers). Inference runs in the
 transcriber's worker threads; events are handed to the asyncio loop with
 call_soon_threadsafe.
+
+NLP  (POST /nlp/embed, phase 4)
+-------------------------------
+  {"texts":[...], "kind":"query"|"passage", "model":null}
+  -> {"model":.., "dim":.., "vectors":[[...], ...], "elapsed_ms":..}
+Sentence embeddings for the scorecard (evidence retrieval, quote
+verification). The embedding model loads on the first request, never at
+startup, so the ASR path is unchanged.
 """
 
 from __future__ import annotations
@@ -45,14 +53,16 @@ import time
 from contextlib import asynccontextmanager
 
 import numpy as np
-from fastapi import FastAPI, File, Form, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 from app.asr.diarizer import OnlineDiarizer
 from app.asr.engine import WhisperEngine
 from app.asr.questions import DEFAULT_TRIGGER_PHRASES, QuestionTracker
 from app.asr.streamer import StreamingTranscriber, TranscriptEvent
 from app.config import DEFAULT, AsrConfig, SAMPLE_RATE
+from app.nlp.embedder import DEFAULT_EMBED_MODEL, get_embedder, loaded_models
 
 ENGINES: dict[str, WhisperEngine] = {}
 CONFIG: AsrConfig = DEFAULT
@@ -86,6 +96,8 @@ def health() -> dict:
         "final_model": ENGINES["final"].name if ENGINES else None,
         "partial_model": ENGINES.get("partial", ENGINES.get("final")).name if ENGINES else None,
         "config": CONFIG.to_dict(),
+        "embed_model_default": DEFAULT_EMBED_MODEL,
+        "embed_models_loaded": loaded_models(),
     }
 
 
@@ -255,4 +267,27 @@ async def transcribe_file(
         "text": " ".join(e["text"] for e in finals if e["text"]),
         "segments": finals,
         "stats": transcriber.stats,
+    }
+
+
+class EmbedRequest(BaseModel):
+    texts: list[str] = Field(min_length=1, max_length=4000)
+    kind: str = Field("passage", pattern="^(query|passage)$")   # matters only for models trained with prefixes
+    model: str | None = None                                      # None = HIRENOTE_EMBED_MODEL
+
+
+@app.post("/nlp/embed")
+def nlp_embed(req: EmbedRequest) -> dict:
+    """Plain def: FastAPI runs it in the thread pool, so a slow embedding never blocks the WebSocket loop."""
+    try:
+        embedder = get_embedder(req.model)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    t0 = time.time()
+    vectors = embedder.embed([t or "" for t in req.texts], kind=req.kind)
+    return {
+        "model": embedder.name,
+        "dim": int(vectors.shape[1]),
+        "vectors": np.round(vectors, 6).tolist(),
+        "elapsed_ms": int((time.time() - t0) * 1000),
     }
