@@ -11,7 +11,13 @@ class Consent extends Model
     use HasFactory;
 
     /** Bump this whenever the consent wording changes. Stored on every consent row. */
-    public const CURRENT_TEXT_VERSION = 'v1';
+    public const CURRENT_TEXT_VERSION = 'v2';
+
+    /**
+     * Versions whose wording tells the candidate the transcript TEXT goes to an external
+     * AI service for the draft scorecard. v1 only promised that audio stays local.
+     */
+    public const EXTERNAL_AI_VERSIONS = ['v2'];
 
     protected $fillable = [
         'candidate_id',

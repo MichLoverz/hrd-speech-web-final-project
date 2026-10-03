@@ -53,7 +53,7 @@ class Phase3RecordingTest extends TestCase
         $this->assertSame('recording', $this->session->status);
         $this->assertNotNull($this->session->started_at);
         $consent = $this->session->consents()->first();
-        $this->assertSame('v1', $consent->consent_text_version);
+        $this->assertSame('v2', $consent->consent_text_version);
         $this->assertNotNull($consent->ip_address);
 
         $this->actingAs($this->hrd)

@@ -89,4 +89,10 @@ class InterviewSession extends Model
     {
         return $this->consents()->exists();
     }
+
+    /** True only if the candidate agreed to wording that covers sending the transcript to an external LLM. */
+    public function allowsExternalAi(): bool
+    {
+        return $this->consents()->whereIn('consent_text_version', Consent::EXTERNAL_AI_VERSIONS)->exists();
+    }
 }

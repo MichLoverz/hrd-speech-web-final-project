@@ -21,7 +21,9 @@ class RecordingController extends Controller
 
         return view('recording.consent', [
             'session' => $interviewSession->load('candidate'),
-            'already' => $interviewSession->hasConsent(),
+            'already' => $interviewSession->allowsExternalAi(),
+            // Consented to an older text that does not mention the external AI step: ask again.
+            'outdated' => $interviewSession->hasConsent() && ! $interviewSession->allowsExternalAi(),
             'mode' => request()->query('mode') === 'question' ? 'question' : 'interview',
         ]);
     }
@@ -32,7 +34,9 @@ class RecordingController extends Controller
 
         $request->validate(['agree' => ['accepted']], ['agree.accepted' => 'Persetujuan harus dicentang untuk melanjutkan.']);
 
-        if (! $interviewSession->hasConsent()) {
+        $reconsent = $interviewSession->hasConsent();
+
+        if (! $interviewSession->allowsExternalAi()) {
             Consent::create([
                 'candidate_id' => $interviewSession->candidate_id,
                 'interview_session_id' => $interviewSession->id,
@@ -40,6 +44,12 @@ class RecordingController extends Controller
                 'ip_address' => $request->ip(),
                 'consent_text_version' => Consent::CURRENT_TEXT_VERSION,
             ]);
+        }
+
+        // Renewing an old consent must not touch a session that was already recorded.
+        if ($reconsent) {
+            return redirect()->route('interview-sessions.show', $interviewSession)
+                ->with('status', 'Persetujuan versi '.Consent::CURRENT_TEXT_VERSION.' tercatat. Transkrip sesi ini boleh dikirim ke layanan AI untuk kartu skor.');
         }
 
         $mode = $request->input('mode') === 'question' ? 'question' : 'interview';
