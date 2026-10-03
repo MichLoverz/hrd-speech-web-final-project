@@ -54,6 +54,22 @@ return [
         'retrieval_top_k' => (int) env('NLP_RETRIEVAL_TOP_K', 5),
     ],
 
+    // LLM for the draft scorecard (ADR-009). Any OpenAI-compatible endpoint: Gemini (development),
+    // OpenRouter (experiments and real interviews) or Ollama (local fallback).
+    'llm' => [
+        'provider' => env('LLM_PROVIDER', 'gemini'),   // gemini | openrouter | ollama
+        'base_url' => env('LLM_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta/openai'),
+        'api_key' => env('LLM_API_KEY'),
+        'model' => env('LLM_MODEL', 'gemini-3.5-flash'),
+        // Gemini 3 cannot switch reasoning off, only down; empty = provider default.
+        'reasoning_effort' => env('LLM_REASONING_EFFORT', 'low'),
+        'temperature' => (float) env('LLM_TEMPERATURE', 0.2),
+        'timeout' => (int) env('LLM_TIMEOUT', 180),
+        // The Gemini free tier lets Google staff read inputs: true = only for read scripts and made-up
+        // test interviews, never for participants. Set false only for a paid, no-training provider.
+        'test_data_only' => (bool) env('LLM_TEST_DATA_ONLY', true),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
