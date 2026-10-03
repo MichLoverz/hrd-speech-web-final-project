@@ -7,6 +7,8 @@ web/storage/app/private/cvs/
 # ASR service
 services/.venv/
 services/models/
+# Downloaded evaluation corpora (FLEURS test split is ~450 MB)
+services/data/
 services/__pycache__/
 **/__pycache__/
 *.pyc
