@@ -26,7 +26,8 @@ Nama tampilan: Admin HireNote, Dewi Anggraini (HRD), Bagus Prasetyo (pewawancara
 
 | Layanan | Variabel di `web/.env` | Catatan |
 |---|---|---|
-| OpenRouter (Fase 4, peringkasan kartu skor) | `OPENROUTER_API_KEY` | belum dibuat; `.env` sudah di-ignore git |
+| Gemini API, tier gratis (Fase 4, **hanya untuk data uji**) | `LLM_API_KEY` dengan `LLM_PROVIDER=gemini` | buat di <https://aistudio.google.com> → *Get API key*. Cek dengan `php artisan llm:ping`. Jangan tempel key di chat |
+| OpenRouter (eksperimen dan data peserta, berbayar) | `LLM_API_KEY` dengan `LLM_PROVIDER=openrouter`, `LLM_BASE_URL=https://openrouter.ai/api/v1`, `LLM_TEST_DATA_ONLY=false` | belum dibuat; top-up ±$10 menjelang eksperimen (ADR-009). `.env` sudah di-ignore git |
 
 ## Model lokal yang harus ada (`services/models/`, git-ignored)
 
