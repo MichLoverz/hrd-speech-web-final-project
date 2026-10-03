@@ -15,6 +15,24 @@
                 <a href="{{ route($session->recording_mode === 'question' ? 'recording.show' : 'live.show', $session) }}" class="btn-primary">Lanjutkan wawancara</a>
             @endif
         @endcan
+        @can('update', $session)
+            @if (! in_array($session->status, ['draft', 'approved'], true))
+                @php
+                    $segmentCount = $session->transcriptSegments->count();
+                    $ratedBy = $session->manualAssessments->count();
+                    $warn = 'Hapus seluruh rekaman sesi ini?'
+                        ."\n\n".'Yang dihapus: '.$segmentCount.' segmen transkrip, '.$session->answers->count().' jawaban, dan berkas audionya.'
+                        ."\n".'Yang tetap: persetujuan dan penilaian manual.'
+                        .($ratedBy ? "\n\nPERHATIAN: sudah ada {$ratedBy} penilaian manual untuk rekaman ini. Penilaian itu tidak ikut terhapus dan akan mengacu ke rekaman yang sudah tidak ada." : '')
+                        ."\n\n".'Tindakan ini tidak bisa dibatalkan.';
+                @endphp
+                <form method="POST" action="{{ route('live.reset', $session) }}" x-data
+                      @submit.prevent="if (confirm(@js($warn))) $el.submit()" class="inline">
+                    @csrf
+                    <button type="submit" class="btn-danger">Ulangi rekaman</button>
+                </form>
+            @endif
+        @endcan
         @can('delete', $session)
             @if ($session->status === 'draft')
                 <x-confirm-delete :action="route('interview-sessions.destroy', $session)" label="Hapus draf" confirm="Hapus sesi draf ini?" />

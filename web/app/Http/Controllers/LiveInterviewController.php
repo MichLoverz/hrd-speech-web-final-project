@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
@@ -175,6 +176,55 @@ class LiveInterviewController extends Controller
         $result = $builder->build($interviewSession);
 
         return back()->with('status', "Jawaban dibangun ulang: {$result['answers']} pertanyaan terisi, {$result['unassigned']} segmen belum punya pertanyaan.");
+    }
+
+    /**
+     * Throw away a bad take. Deletes this session's transcript segments,
+     * derived answers and audio, then puts the session back to draft so the
+     * same candidate/questions can be recorded again without setting up a new
+     * session. Works for both recording modes — all audio for a session lives
+     * under recordings/{id}.
+     *
+     * Kept on purpose: consent (already given for this session) and manual
+     * assessments (someone's own work; the page warns if any exist).
+     * Refused on approved sessions — that is a finished record, not a take.
+     */
+    public function reset(InterviewSession $interviewSession): RedirectResponse
+    {
+        $this->authorize('update', $interviewSession);
+        abort_if($interviewSession->status === 'approved', 403, 'Sesi yang sudah disetujui tidak bisa direkam ulang.');
+
+        $answerIds = $interviewSession->answers()->pluck('id')->all();
+        $segmentQuery = fn () => TranscriptSegment::where(function ($q) use ($interviewSession, $answerIds) {
+            $q->where('interview_session_id', $interviewSession->id);
+            if ($answerIds) {
+                $q->orWhereIn('answer_id', $answerIds);
+            }
+        });
+        $counts = ['segments' => $segmentQuery()->count(), 'answers' => count($answerIds)];
+
+        DB::transaction(function () use ($interviewSession, $segmentQuery) {
+            $segmentQuery()->delete();
+            $interviewSession->answers()->delete();        // evidence_quotes cascade
+            $interviewSession->analysisResult()->delete();
+            $interviewSession->update([
+                'status' => 'draft',
+                'audio_path' => null,
+                'audio_duration_ms' => null,
+                'asr_model' => null,
+                'speaker_model' => null,
+                'started_at' => null,
+                'ended_at' => null,
+            ]);
+        });
+
+        // Files are not transactional, so only after the rows are certainly gone.
+        Storage::deleteDirectory("recordings/{$interviewSession->id}");
+
+        return redirect()->route('interview-sessions.show', $interviewSession)->with(
+            'status',
+            "Rekaman dihapus: {$counts['segments']} segmen dan {$counts['answers']} jawaban. Sesi kembali ke draf dan siap direkam ulang."
+        );
     }
 
     /** Human correction of one segment: which question, which speaker. */

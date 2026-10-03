@@ -140,4 +140,63 @@ class Phase3bLiveInterviewTest extends TestCase
         $outsider = User::factory()->create(['role' => User::ROLE_INTERVIEWER]);
         $this->actingAs($outsider)->postJson(route('live.segments', $this->session), ['segments' => []])->assertForbidden();
     }
+
+    /** A bad take can be thrown away: transcript, answers and audio go, the session stays. */
+    public function test_reset_clears_the_recording_and_returns_the_session_to_draft(): void
+    {
+        Storage::fake('local');
+        $s = $this->session;
+
+        $this->actingAs($this->hrd)->postJson(route('live.segments', $s), ['segments' => [
+            $this->seg(1, 'interviewer', $this->q[1], 'Ceritakan proyek terakhir Anda.', 0, 2500),
+            $this->seg(2, 'candidate', $this->q[1], 'Jawaban yang gagal.', 3000, 6000),
+        ]])->assertOk();
+        $pcm = str_repeat(pack('v', 99), 16000);
+        $this->actingAs($this->hrd)->call('POST', route('live.audio', $s), [], [], [], ['CONTENT_TYPE' => 'application/octet-stream'], $pcm)->assertOk();
+        $this->actingAs($this->hrd)->postJson(route('live.finish', $s), [])->assertOk();
+
+        $s->refresh();
+        $this->assertSame('ready_for_review', $s->status);
+        Storage::disk('local')->assertExists($s->audio_path);
+        $this->assertSame(1, Answer::count());
+        $this->assertSame(2, TranscriptSegment::count());
+
+        // The button is offered on the session page while a recording exists...
+        $this->actingAs($this->hrd)->get(route('interview-sessions.show', $s))
+            ->assertOk()->assertSee('Ulangi rekaman');
+
+        $this->actingAs($this->hrd)->post(route('live.reset', $s))->assertRedirect(route('interview-sessions.show', $s));
+
+        $s->refresh();
+        $this->assertSame('draft', $s->status);
+        $this->assertNull($s->audio_path);
+        $this->assertNull($s->audio_duration_ms);
+        $this->assertNull($s->ended_at);
+        $this->assertSame(0, Answer::count());
+        $this->assertSame(0, TranscriptSegment::count());
+        Storage::disk('local')->assertMissing('recordings/'.$s->id.'/session.wav');
+
+        // ...and withdrawn once the session is back to draft, so it cannot be pressed twice.
+        $this->actingAs($this->hrd)->get(route('interview-sessions.show', $s))
+            ->assertOk()->assertDontSee('Ulangi rekaman');
+
+        // Consent survives, so the same session can be recorded again right away.
+        $this->assertTrue($s->hasConsent());
+        $this->actingAs($this->hrd)->get(route('live.show', $s))->assertOk();
+    }
+
+    public function test_reset_is_refused_on_an_approved_session_and_to_outsiders(): void
+    {
+        $s = $this->session;
+        $this->actingAs($this->hrd)->postJson(route('live.segments', $s), ['segments' => [
+            $this->seg(1, 'candidate', $this->q[1], 'Sudah final.', 0, 2000),
+        ]])->assertOk();
+
+        $outsider = User::factory()->create(['role' => User::ROLE_INTERVIEWER]);
+        $this->actingAs($outsider)->post(route('live.reset', $s))->assertForbidden();
+
+        $s->update(['status' => 'approved']);
+        $this->actingAs($this->hrd)->post(route('live.reset', $s))->assertForbidden();
+        $this->assertSame(1, TranscriptSegment::count());
+    }
 }

@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::post('interview-sessions/{interviewSession}/live/audio', [LiveInterviewController::class, 'audio'])->name('live.audio');
     Route::post('interview-sessions/{interviewSession}/live/finish', [LiveInterviewController::class, 'finish'])->name('live.finish');
     Route::post('interview-sessions/{interviewSession}/live/rebuild', [LiveInterviewController::class, 'rebuild'])->name('live.rebuild');
+    Route::post('interview-sessions/{interviewSession}/live/reset', [LiveInterviewController::class, 'reset'])->name('live.reset');
     Route::patch('segments/{segment}', [LiveInterviewController::class, 'updateSegment'])->name('segments.update');
 
     // Criteria and questions are edited inline from the job opening page.

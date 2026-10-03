@@ -33,6 +33,8 @@ Hanya segmen final berlabel **pewawancara** yang bisa memindahkan pertanyaan:
 
 Transkrip (upsert per `client_seq`) tiap 2 s dan PCM mentah tiap 10 s dikirim ke Laravel selama wawancara; `finish` membungkus PCM jadi WAV dan menyusun jawaban. Crash browser kehilangan paling banyak beberapa detik.
 
+**Tambahan 2026-09-23 — "Ulangi rekaman".** Konsekuensi yang tidak disadari saat ini ditulis: karena penyimpanan bersifat menyambung, membuka ulang halaman rekam **melanjutkan** dan bukan mengulang, sehingga take yang gagal bercampur dengan take baru. Ditambahkan `POST .../live/reset` yang menghapus segmen, jawaban turunan, hasil analisis, dan berkas audio sesi, lalu mengembalikan sesi ke `draft`. Persetujuan dan penilaian manual dipertahankan. Ditolak untuk sesi `approved`. Penghapusan berkas dilakukan setelah transaksi database berhasil, karena berkas tidak ikut rollback.
+
 ## Bukti (2026-09-22, sintetis: pewawancara = TTS David, kandidat = rekaman mahasiswa)
 
 | Uji | Hasil |
