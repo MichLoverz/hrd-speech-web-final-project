@@ -134,6 +134,9 @@ erDiagram
         text quote_text
         enum supports "strength | weakness"
         boolean is_verified
+        string match_method "exact | normalized | fuzzy | similar | none"
+        decimal match_score
+        text matched_text
     }
     manual_assessments {
         bigint id PK

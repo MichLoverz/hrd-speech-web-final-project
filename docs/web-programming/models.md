@@ -15,7 +15,7 @@ Semua model di `web/app/Models/`. Diagram: [erd.md](erd.md). Alasan skema: [ADR-
 | `TranscriptSegment` | `transcript_segments` | `answer()` belongsTo | Instrumentasi latency per emit (Fase 3) |
 | `AnalysisResult` | `analysis_results` | `interviewSession()` belongsTo · `approver()` belongsTo User · `scores()` hasMany · `evidenceQuotes()` **hasManyThrough** Score | Kartu skor AI, satu per sesi (`interview_session_id` unik) |
 | `Score` | `scores` | `analysisResult()`, `criterion()` belongsTo · `evidenceQuotes()` hasMany | Skor AI per kriteria; `strengths`/`weaknesses` JSON |
-| `EvidenceQuote` | `evidence_quotes` | `score()`, `answer()` belongsTo | `is_verified` = kutipan ditemukan di transkrip |
+| `EvidenceQuote` | `evidence_quotes` | `score()`, `answer()` belongsTo | `is_verified` = kutipan ditemukan di transkrip (`exact`/`normalized`); `match_method`/`match_score`/`matched_text` dari `QuoteVerifier` (ADR-008) |
 | `ManualAssessment` | `manual_assessments` | `interviewSession()` belongsTo · `rater()` belongsTo User · `scores()` hasMany ManualScore | Penilaian manusia, satu per (sesi, penilai); `submitted_at` mengunci; `weightedScore()` |
 | `ManualScore` | `manual_scores` | `manualAssessment()`, `criterion()` belongsTo | Skor manusia 1–5 per kriteria |
 
