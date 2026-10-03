@@ -1,0 +1,16 @@
+reference: docs/experiments/raw/mic-tests/2026-09-22_uji-pertama_ref.txt  (109 words, punct=remove)
+
+hypothesis              WER raw  WER num   delta  CER raw  CER num   S*   D*   I*
+uji-pertama-small         0.376    0.370  -0.006    0.176    0.165   31    3    6
+    substitute   ref='melamar'                                hyp='malamar'
+    substitute   ref='posisi backend'                         hyp='persisi backhand'
+    insert       ref=''                                       hyp='dimatikan orang'
+    substitute   ref='tim berlima tantangan terbesarnya'      hyp='tantang entera besar nya'
+    substitute   ref='query'                                  hyp='kweri'
+    substitute   ref='tabel transaksi'                        hyp='label transseksi'
+
+raw        = lowercase + punctuation (remove)
+normalised = the same, plus Indonesian cardinal numbers written as digits
+* S/D/I are counted on the normalised text
+
+written: docs/experiments/results/2026-09-23_wer-uji-pertama.json

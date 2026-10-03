@@ -1,0 +1,32 @@
+Berkas: 2026-09-22_uji-kedua_naskah-02_michael_laptop-mic.wav  (53.0 s)
+Memuat model final medium/int8 (12 thread) ... selesai (4.91s)
+
+Selesai: audio 53.0 s diproses dalam 0.5 s (wall)
+[1mbiasanya saya mulai dari mengukur dulu bukan menebak[0m  [90m[final  latency 6011 ms  RTF 1.306  4.6s][0m
+[1msaya cek slow query log dan jelankan explain untuk apakah[0m  [90m[final  latency 11736 ms  RTF 1.073  5.4s][0m
+[1mquery nya melakukan full table scan[0m  [90m[final  latency 17109 ms  RTF 1.289  4.2s][0m
+[1mKalau iya, langkah pertama biasanya menambahkan index yang tepat.[0m  [90m[final  latency 23061 ms  RTF 1.427  4.2s][0m
+[1mmisalnya Composite Index di kolom yang dipakai, di Wear, dan Order By[0m  [90m[final  latency 29024 ms  RTF 1.201  5.0s][0m
+[1mkalau masalah yang ada di aplikasi sering kali itu n plus satu query[0m  [90m[final  latency 34947 ms  RTF 1.195  5.0s][0m
+[1mjadi saya pakai eager loading dengan width di Laravel supaya jadi satu query saja[0m  [90m[final  latency 40490 ms  RTF 1.002  5.6s][0m
+[1mUntuk data yang jarang berubah, saya tambahkan caching di Redis dengan waktu kada luarsa sekitar lima menit.[0m  [90m[final  latency 46692 ms  RTF 0.896  7.0s][0m
+[1msetelah itu saya call lagi karena optimisasi tanpa angka sebelumnya sesuatu cuman perasaan.[0m  [90m[final  latency 52866 ms  RTF 0.946  6.6s][0m
+
+=== Ringkasan ===
+  model final / partial  medium / medium  (int8, 12 thread)
+  partial latency (ms)   (tidak ada)
+  final latency (ms)     n=9    mean=29104.0  median=29024.0  p95=50396.4  min=6011.0   max=52866.0
+  partial RTF            (tidak ada)
+  final RTF              n=9    mean=1.1      median=1.2      p95=1.4      min=0.9      max=1.4
+  audio final (detik)    47.6
+  wall_seconds           0.5
+  audio_seconds          53.0
+  paced                  False
+  source                 2026-09-22_uji-kedua_naskah-02_michael_laptop-mic.wav
+  partials               0
+  partials_skipped       0
+  finals                 9
+  initial_prompt         
+
+Log mentah: C:\Users\Michael\Documents\Binus Project\Speech Recognition\Final Project\docs\experiments\raw\latency\20260923-035938_e5-medium-none.csv
+            C:\Users\Michael\Documents\Binus Project\Speech Recognition\Final Project\docs\experiments\raw\latency\20260923-035938_e5-medium-none.json

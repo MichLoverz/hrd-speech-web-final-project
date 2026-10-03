@@ -1,0 +1,32 @@
+Berkas: 2026-09-22_uji-kedua_naskah-02_michael_laptop-mic.wav  (53.0 s)
+Memuat model final medium/int8 (12 thread) ... selesai (53.41s)
+
+Selesai: audio 53.0 s diproses dalam 0.3 s (wall)
+[1mBiasanya saya mulai dari mengukur dulu, bukan menebak.[0m  [90m[final  latency 4940 ms  RTF 1.074  4.6s][0m
+[1mSaya cek slow query log dan jalankan explain untuk apakah[0m  [90m[final  latency 9689 ms  RTF 0.885  5.4s][0m
+[1mQuerynya melakukan full table scan[0m  [90m[final  latency 15685 ms  RTF 1.435  4.2s][0m
+[1mKalau iya, langkah pertama biasanya menambahkan index yang tepat.[0m  [90m[final  latency 21479 ms  RTF 1.388  4.2s][0m
+[1mMisalnya Composite Index di kolom yang dipakai, di Where dan Order By[0m  [90m[final  latency 27445 ms  RTF 1.199  5.0s][0m
+[1mKalau masalah yang ada di aplikasi, sering kali itu n plus satu query[0m  [90m[final  latency 33209 ms  RTF 1.159  5.0s][0m
+[1mJadi saya pakai eager loading dengan width di Laravel supaya jadi satu query saja.[0m  [90m[final  latency 40591 ms  RTF 1.327  5.6s][0m
+[1mUntuk data yang jarang berubah, saya tambahkan caching di Redis dengan waktu kada luarsa sekitar lima menit.[0m  [90m[final  latency 48134 ms  RTF 1.083  7.0s][0m
+[1mSetelah itu saya call lagi karena optimisasi tanpa angka sebelumnya sesuatu cuman perasaan.[0m  [90m[final  latency 54728 ms  RTF 1.005  6.6s][0m
+
+=== Ringkasan ===
+  model final / partial  medium / medium  (int8, 12 thread)
+  partial latency (ms)   (tidak ada)
+  final latency (ms)     n=9    mean=28433.3  median=27445.0  p95=52090.4  min=4940.0   max=54728.0
+  partial RTF            (tidak ada)
+  final RTF              n=9    mean=1.2      median=1.2      p95=1.4      min=0.9      max=1.4
+  audio final (detik)    47.6
+  wall_seconds           0.3
+  audio_seconds          53.0
+  paced                  False
+  source                 2026-09-22_uji-kedua_naskah-02_michael_laptop-mic.wav
+  partials               0
+  partials_skipped       0
+  finals                 9
+  initial_prompt         Bagaimana Anda menangani query database yang lambat?
+
+Log mentah: C:\Users\Michael\Documents\Binus Project\Speech Recognition\Final Project\docs\experiments\raw\latency\20260923-035836_e5-medium-prompt.csv
+            C:\Users\Michael\Documents\Binus Project\Speech Recognition\Final Project\docs\experiments\raw\latency\20260923-035836_e5-medium-prompt.json

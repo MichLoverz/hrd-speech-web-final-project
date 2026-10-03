@@ -1,0 +1,15 @@
+reference: docs/experiments/scripts/naskah-02-query-lambat.txt  (102 words, punct=remove)
+
+hypothesis              WER raw  WER num   delta  CER raw  CER num   S*   D*   I*
+base-none                 0.304    0.294  -0.010    0.166    0.162   25    4    1
+base-prompt               0.304    0.304  +0.000    0.166    0.163   26    4    1
+small-none                0.225    0.216  -0.010    0.104    0.099   17    2    3
+small-prompt              0.186    0.176  -0.010    0.090    0.085   13    3    2
+medium-none               0.167    0.167  +0.000    0.054    0.054   13    2    2
+medium-prompt             0.127    0.127  +0.000    0.046    0.046    8    3    2
+
+raw        = lowercase + punctuation (remove)
+normalised = the same, plus Indonesian cardinal numbers written as digits
+* S/D/I are counted on the normalised text
+
+written: docs/experiments/results/2026-09-23_wer-uji-kedua.json

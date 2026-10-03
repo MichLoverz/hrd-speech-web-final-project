@@ -1,0 +1,120 @@
+{
+  "reference": "docs/experiments/scripts/naskah-02-query-lambat.txt",
+  "punct": "remove",
+  "results": {
+    "base-none": {
+      "file": "docs/experiments/raw/mic-tests/2026-09-22_uji-kedua_hyp-base-none.txt",
+      "raw": {
+        "wer": 0.3039,
+        "cer": 0.1656,
+        "S": 26,
+        "D": 4,
+        "I": 1,
+        "ref_words": 102
+      },
+      "normalised": {
+        "wer": 0.2941,
+        "cer": 0.1616,
+        "S": 25,
+        "D": 4,
+        "I": 1,
+        "ref_words": 102
+      }
+    },
+    "base-prompt": {
+      "file": "docs/experiments/raw/mic-tests/2026-09-22_uji-kedua_hyp-base-prompt.txt",
+      "raw": {
+        "wer": 0.3039,
+        "cer": 0.1656,
+        "S": 26,
+        "D": 4,
+        "I": 1,
+        "ref_words": 102
+      },
+      "normalised": {
+        "wer": 0.3039,
+        "cer": 0.1632,
+        "S": 26,
+        "D": 4,
+        "I": 1,
+        "ref_words": 102
+      }
+    },
+    "small-none": {
+      "file": "docs/experiments/raw/mic-tests/2026-09-22_uji-kedua_hyp-small-none.txt",
+      "raw": {
+        "wer": 0.2255,
+        "cer": 0.1041,
+        "S": 18,
+        "D": 2,
+        "I": 3,
+        "ref_words": 102
+      },
+      "normalised": {
+        "wer": 0.2157,
+        "cer": 0.0992,
+        "S": 17,
+        "D": 2,
+        "I": 3,
+        "ref_words": 102
+      }
+    },
+    "small-prompt": {
+      "file": "docs/experiments/raw/mic-tests/2026-09-22_uji-kedua_hyp-small-prompt.txt",
+      "raw": {
+        "wer": 0.1863,
+        "cer": 0.0899,
+        "S": 14,
+        "D": 3,
+        "I": 2,
+        "ref_words": 102
+      },
+      "normalised": {
+        "wer": 0.1765,
+        "cer": 0.0848,
+        "S": 13,
+        "D": 3,
+        "I": 2,
+        "ref_words": 102
+      }
+    },
+    "medium-none": {
+      "file": "docs/experiments/raw/mic-tests/2026-09-22_uji-kedua_hyp-medium-none.txt",
+      "raw": {
+        "wer": 0.1667,
+        "cer": 0.0536,
+        "S": 13,
+        "D": 2,
+        "I": 2,
+        "ref_words": 102
+      },
+      "normalised": {
+        "wer": 0.1667,
+        "cer": 0.0544,
+        "S": 13,
+        "D": 2,
+        "I": 2,
+        "ref_words": 102
+      }
+    },
+    "medium-prompt": {
+      "file": "docs/experiments/raw/mic-tests/2026-09-22_uji-kedua_hyp-medium-prompt.txt",
+      "raw": {
+        "wer": 0.1275,
+        "cer": 0.0457,
+        "S": 8,
+        "D": 3,
+        "I": 2,
+        "ref_words": 102
+      },
+      "normalised": {
+        "wer": 0.1275,
+        "cer": 0.0464,
+        "S": 8,
+        "D": 3,
+        "I": 2,
+        "ref_words": 102
+      }
+    }
+  }
+}

@@ -40,12 +40,27 @@ input_overflows 0      max_queue_backlog_chunks 32      partials 18  skipped 0  
 
 **Keseluruhan: WER 0,376 (S=32, D=3, I=6, N=109), CER 0,184.** Dihitung dengan `jiwer` setelah normalisasi (huruf kecil, tanda baca dibuang).
 
+### Penghitungan ulang 2026-09-23 — dengan normalisasi angka
+
+Referensi dan hipotesis diambil kembali dari tabel di atas ke `2026-09-22_uji-pertama_ref.txt` dan `..._hyp-small.txt`, lalu dihitung `tools/wer_eval.py`. Pengambilannya **mereproduksi angka lama persis** (109 kata, WER 0,376, S=32 D=3 I=6), jadi isinya memang sama dengan yang dulu dinilai.
+
+| | WER | CER |
+|---|---|---|
+| mentah (seperti dulu) | 0,376 | 0,176 |
+| + normalisasi angka | **0,370** | **0,165** |
+
+- Selisih WER −0,006 = satu kata: *tiga* → "3" di kalimat 2, yang dulu dihitung salah padahal maknanya sama.
+- **"delapan juta" → "80 juta" tetap dihitung salah**, dan memang harus begitu: setelah normalisasi keduanya jadi 8000000 vs 80000000. Normalisasi memaafkan cara penulisan, bukan nilai yang keliru. Ini kasus uji terbaik yang kita punya untuk membuktikan normalisasinya tidak "mengarang" perbaikan.
+- CER 0,184 → 0,176 bukan efek angka, melainkan perbaikan cara hitung: dulu WER dihitung tanpa tanda baca tapi CER dihitung dengan tanda baca, jadi titik/koma sisipan Whisper terhitung sebagai kesalahan huruf. Sekarang keduanya memakai normalisasi yang sama.
+
+Log: `2026-09-23_wer-rescore-uji-pertama.txt` · JSON: `docs/experiments/results/2026-09-23_wer-uji-pertama.json`
+
 ## Pola kesalahan
 
 | Pola | Contoh | Catatan |
 |---|---|---|
 | Istilah teknis / campur kode | query→kweri, tabel→label, reviewer→refiur, edge case→etxkesi, queue→QE, Backend→Backhand | Kalimat 6 (paling banyak Inggris) paling rusak. Kandidat tuas: `initial_prompt` berisi istilah dari pertanyaan lowongan |
-| Angka | delapan juta → 80 juta, tiga → 3 | "80 juta" berbahaya secara produk; `salary_fit` sengaja memakai kolom `expected_salary`, bukan transkrip |
+| Angka | delapan juta → 80 juta, tiga → 3 | "80 juta" berbahaya secara produk; `salary_fit` sengaja memakai kolom `expected_salary`, bukan transkrip. Setelah normalisasi angka (2026-09-23): *tiga→3* tidak lagi dihitung salah, *delapan juta→80 juta* tetap salah |
 | Kata mirip bunyi | gaji→gadget, bug→bagi, tantangan terbesarnya→tantang entera besar nya, tim berlima→dimatikan orang | Kelemahan model umum tanpa konteks domain |
 | Normalisasi ejaan | menambahkan→nambahkan, diskusi→didiskusikan | Sebagian karena cara baca; tetap dihitung WER |
 | Outlier latency | kalimat 6a: 6,4 s, RTF 1,6 | Antrian 32 chunk; kemungkinan CPU sedang dipakai proses lain + backlog |

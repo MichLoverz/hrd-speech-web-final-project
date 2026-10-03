@@ -1,0 +1,25 @@
+{
+  "reference": "docs/experiments/raw/mic-tests/2026-09-22_uji-pertama_ref.txt",
+  "punct": "remove",
+  "results": {
+    "uji-pertama-small": {
+      "file": "docs/experiments/raw/mic-tests/2026-09-22_uji-pertama_hyp-small.txt",
+      "raw": {
+        "wer": 0.3761,
+        "cer": 0.1756,
+        "S": 32,
+        "D": 3,
+        "I": 6,
+        "ref_words": 109
+      },
+      "normalised": {
+        "wer": 0.3704,
+        "cer": 0.1647,
+        "S": 31,
+        "D": 3,
+        "I": 6,
+        "ref_words": 108
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+loading base/int8 on 12 threads ... 1.79s
+scoring 200 FLEURS id_id utterances (seed 20260923, ref=raw_transcription)
+
+  10/200  audio 2.2 min  elapsed 0.2 min  20/200  audio 4.5 min  elapsed 0.5 min  30/200  audio 6.3 min  elapsed 0.7 min  40/200  audio 8.3 min  elapsed 0.8 min  50/200  audio 10.7 min  elapsed 1.0 min  60/200  audio 12.8 min  elapsed 1.1 min  70/200  audio 14.6 min  elapsed 1.3 min  80/200  audio 16.8 min  elapsed 1.5 min  90/200  audio 18.8 min  elapsed 1.7 min  100/200  audio 21.2 min  elapsed 1.9 min  110/200  audio 22.9 min  elapsed 2.0 min  120/200  audio 25.2 min  elapsed 2.1 min  130/200  audio 27.1 min  elapsed 2.3 min  140/200  audio 29.5 min  elapsed 2.4 min  150/200  audio 31.5 min  elapsed 2.7 min  160/200  audio 33.6 min  elapsed 2.9 min  170/200  audio 35.3 min  elapsed 3.0 min  180/200  audio 37.1 min  elapsed 3.2 min  190/200  audio 39.3 min  elapsed 3.3 min  200/200  audio 41.2 min  elapsed 3.4 min
+
+utterances            200
+reference words       3865
+audio                 41.2 min
+WER raw               0.3506
+WER + numbers         0.3483
+CER + numbers         0.1104
+S / D / I             1075 / 117 / 154
+RTF median            0.078
+RTF overall           0.083
+
+written: C:\Users\Michael\Documents\Binus Project\Speech Recognition\Final Project\docs\experiments\raw\fleurs\20260923-041340_base-200.csv
+         C:\Users\Michael\Documents\Binus Project\Speech Recognition\Final Project\docs\experiments\raw\fleurs\20260923-041340_base-200.json

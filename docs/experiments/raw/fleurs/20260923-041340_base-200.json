@@ -1,0 +1,22 @@
+{
+  "label": "base-200",
+  "model": "base",
+  "compute": "int8",
+  "threads": 12,
+  "utterances": 200,
+  "ref_words": 3865,
+  "audio_seconds": 2473.0,
+  "inference_seconds": 205.4,
+  "rtf_median": 0.078,
+  "rtf_overall": 0.083,
+  "wer_raw": 0.3506,
+  "wer_num": 0.3483,
+  "cer_raw": 0.1112,
+  "cer_num": 0.1104,
+  "S": 1075,
+  "D": 117,
+  "I": 154,
+  "ref_col": "raw_transcription",
+  "punct": "remove",
+  "seed": 20260923
+}
