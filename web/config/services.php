@@ -42,6 +42,18 @@ return [
             'lanjut ke pertanyaan berikutnya|pertanyaan berikutnya|pertanyaan selanjutnya|lanjut ke pertanyaan selanjutnya|next question|pertanyaan terakhir'))))),
     ],
 
+    // Scorecard NLP (ADR-004, ADR-008). Same Python process as the ASR by default.
+    'nlp' => [
+        'http' => env('NLP_HTTP_URL', env('ASR_HTTP_URL', 'http://127.0.0.1:8765')),
+        'timeout' => (int) env('NLP_HTTP_TIMEOUT', 120),
+        // null = the service default (HIRENOTE_EMBED_MODEL, MiniLM-L12 multilingual). Switchable for the sub-experiment.
+        'embed_model' => env('NLP_EMBED_MODEL'),
+        // PROVISIONAL, not calibrated: both are calibrated on real LLM quotes once they exist (ADR-008).
+        'quote_similarity_threshold' => (float) env('NLP_QUOTE_SIMILARITY_THRESHOLD', 0.80),
+        'quote_fuzzy_threshold' => (float) env('NLP_QUOTE_FUZZY_THRESHOLD', 0.85),
+        'retrieval_top_k' => (int) env('NLP_RETRIEVAL_TOP_K', 5),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

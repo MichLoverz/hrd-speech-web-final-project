@@ -18,12 +18,16 @@ class EvidenceQuote extends Model
         'start_ms',
         'end_ms',
         'is_verified',
+        'match_method',
+        'match_score',
+        'matched_text',
     ];
 
     protected function casts(): array
     {
         return [
             'is_verified' => 'boolean',
+            'match_score' => 'float',
         ];
     }
 
