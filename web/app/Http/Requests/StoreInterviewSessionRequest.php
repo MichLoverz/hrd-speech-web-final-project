@@ -19,6 +19,7 @@ class StoreInterviewSessionRequest extends FormRequest
             'panel' => ['nullable', 'array'],
             'panel.*' => ['integer', 'exists:users,id'],
             'notes' => ['nullable', 'string', 'max:2000'],
+            'is_test_data' => ['nullable', 'boolean'],
         ];
     }
 

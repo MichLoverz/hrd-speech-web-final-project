@@ -44,6 +44,13 @@
                     <textarea id="notes" name="notes" rows="3" class="field-textarea" maxlength="2000">{{ old('notes') }}</textarea>
                 </x-field>
 
+                <div class="field">
+                    <label class="flex items-start gap-3 text-sm">
+                        <input type="checkbox" name="is_test_data" value="1" class="field-checkbox mt-0.5" @checked(old('is_test_data'))>
+                        <span><span class="font-semibold">Sesi uji / demo</span>: naskah bacaan atau wawancara rekaan, bukan kandidat sungguhan. Tidak masuk angka evaluasi, dan boleh diproses LLM tier gratis. Tidak bisa diubah setelah sesi dibuat.</span>
+                    </label>
+                </div>
+
                 <div class="mt-8 flex items-center gap-3">
                     <button type="submit" class="btn-primary">Buat sesi draf</button>
                     <a href="{{ route('interview-sessions.index') }}" class="text-sm">Batal</a>

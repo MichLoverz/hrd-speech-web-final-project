@@ -7,6 +7,9 @@
 
 <x-page :title="'Wawancara: '.$session->candidate->name" :subtitle="$opening->title.' — pewawancara utama '.$session->interviewer->name" :back="route('interview-sessions.index')" back-label="Semua sesi">
     <x-slot:actions>
+        @if ($session->is_test_data)
+            <span class="text-sm text-pencil mr-2">data uji</span>
+        @endif
         <x-status :value="$session->status" class="mr-2" />
         @can('update', $session)
             @if ($session->status === 'draft')

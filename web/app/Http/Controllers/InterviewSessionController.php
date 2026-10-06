@@ -82,6 +82,7 @@ class InterviewSessionController extends Controller
             'interviewer_id' => $request->integer('interviewer_id'),
             'notes' => $request->input('notes'),
             'status' => 'draft',
+            'is_test_data' => $request->boolean('is_test_data'),
         ]);
 
         // Lead interviewer is always on the panel.
