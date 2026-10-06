@@ -95,6 +95,8 @@ Perekaman di browser memakai mikrofon lewat `getUserMedia`, yang hanya diizinkan
 
 ## Kartu skor AI (Fase 4)
 
+Panduan lengkap untuk demo atau prototype testing: [../user-testing/panduan-prototype-testing.md](../user-testing/panduan-prototype-testing.md).
+
 1. Isi `LLM_API_KEY` di `web/.env`. Untuk pengembangan pakai key Gemini dari <https://aistudio.google.com>; cek dengan `php artisan llm:ping`. Gemini gratis **hanya untuk data uji** (ADR-009).
 2. Jalankan layanan Python (lihat bagian sebelumnya). Dibutuhkan untuk verifikasi kutipan tingkat parafrase dan kondisi retrieval.
 3. Buat sesi uji yang sudah selesai dari naskah bacaan: `php artisan hirenote:demo-session` (butuh `php artisan db:seed` sebelumnya).

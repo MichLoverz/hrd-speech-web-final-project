@@ -33,6 +33,8 @@ Diperbarui setiap sesi kerja. Format mengikuti §21.2 ketentuan Final Project CO
 
 | 26 | Claude Code | Coding: skala 0–10 kelipatan 0,5 (prompt v2) + penanganan kuota harian LLM | Mahasiswa meminta skala 0–10 berkoma tanpa label; AI mengusulkan kelipatan 0,5 dan titik patokan, disetujui mahasiswa | Dipakai (ADR-010) | 4 tes baru, 89 lulus. Migrasi memetakan skor dev lama 1→0 … 5→10, diperiksa sebelum dan sesudah di database dev. Prompt v2 dijalankan 2× dengan Gemini (hasil identik). AI menemukan kuota gratis 20 permintaan/hari/model dari error 429 nyata, dan mengubah client supaya tidak mencoba ulang kuota harian. **[belum diverifikasi]** Mahasiswa sebaiknya membuka form penilaian manual dan halaman sesi demo untuk melihat skala baru |
 
+| 27 | Claude Code | Panduan prototype testing + skenario demo + checkbox "Sesi uji / demo" + `hirenote:prototype-demo` | Diminta panduan detail menjalankan website sampai kartu skor dan skenario demo 2 pertanyaan untuk dibacakan dua teman | Dipakai | AI menemukan sesi buatan website tidak bisa ditandai data uji (Gemini gratis akan menolak), lalu menambah checkbox. Naskah disusun mengikuti batasan sistem (jeda 1 detik, pertanyaan dibaca persis, pembuka > 2 detik). 3 tes baru, 92 lulus. **[belum diverifikasi]** Naskah belum pernah dibacakan ke sistem; gladi resik mahasiswa adalah uji pertamanya. Catat jumlah label pembicara yang salah dan cara pertanyaan berpindah |
+
 ## Catatan integritas
 
 - Seeder sengaja **tidak** berisi transkrip, segmen latency, hasil analisis, atau skor. Semua data evaluasi harus berasal dari rekaman dan eksperimen nyata.
