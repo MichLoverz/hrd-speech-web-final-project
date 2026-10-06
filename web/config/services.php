@@ -65,6 +65,9 @@ return [
         'reasoning_effort' => env('LLM_REASONING_EFFORT', 'low'),
         'temperature' => (float) env('LLM_TEMPERATURE', 0.2),
         'timeout' => (int) env('LLM_TIMEOUT', 180),
+        // Retries on 429/5xx/connection errors, waiting 2 s, 4 s, 8 s (the free tier often answers 503 "high demand").
+        'retries' => (int) env('LLM_RETRIES', 3),
+        'retry_base_ms' => (int) env('LLM_RETRY_BASE_MS', 2000),
         // The Gemini free tier lets Google staff read inputs: true = only for read scripts and made-up
         // test interviews, never for participants. Set false only for a paid, no-training provider.
         'test_data_only' => (bool) env('LLM_TEST_DATA_ONLY', true),

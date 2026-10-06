@@ -21,6 +21,8 @@ class Phase4LlmClientTest extends TestCase
             'reasoning_effort' => 'low',
             'temperature' => 0.2,
             'timeout' => 30,
+            'retries' => 3,
+            'retry_base_ms' => 0,
             'test_data_only' => true,
         ], $overrides));
     }
@@ -64,6 +66,30 @@ class Phase4LlmClientTest extends TestCase
             && ! isset($req['reasoning_effort'])
             && ! isset($req['response_format']));
         $this->assertSame(0.0381, $r->costUsd);
+    }
+
+    public function test_overload_is_retried_but_a_client_error_is_not(): void
+    {
+        Http::fakeSequence()
+            ->push(['error' => ['message' => 'This model is currently experiencing high demand.']], 503)
+            ->push($this->reply('{"ok":true}'));
+
+        $r = $this->client()->complete([['role' => 'user', 'content' => 'x']]);
+
+        $this->assertSame(['ok' => true], $r->json());
+        Http::assertSentCount(2);
+    }
+
+    public function test_bad_request_fails_at_once(): void
+    {
+        Http::fake(['*' => Http::response(['error' => ['message' => 'API key not valid']], 400)]);
+
+        try {
+            $this->client()->complete([['role' => 'user', 'content' => 'x']]);
+            $this->fail('expected LlmUnavailable');
+        } catch (LlmUnavailable) {
+        }
+        Http::assertSentCount(1);
     }
 
     public function test_invalid_json_reply_is_reported_as_null_not_an_exception(): void

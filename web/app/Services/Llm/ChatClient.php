@@ -74,9 +74,18 @@ class ChatClient
 
         $started = microtime(true);
         try {
+            // Overload (503 "high demand"), rate limits and dropped connections are routine on the
+            // free tier and pass within seconds; a 4xx like a bad key or bad schema is not retried.
             $response = Http::withToken((string) $this->config['api_key'])
                 ->timeout($this->config['timeout'])
                 ->acceptJson()
+                ->retry(
+                    (int) ($this->config['retries'] ?? 3),
+                    fn (int $attempt) => (int) ($this->config['retry_base_ms'] ?? 2000) * 2 ** ($attempt - 1),
+                    fn (\Throwable $e) => $e instanceof ConnectionException
+                        || ($e instanceof RequestException && in_array($e->response->status(), [429, 500, 502, 503, 504], true)),
+                    throw: false,
+                )
                 ->post(rtrim($this->config['base_url'], '/').'/chat/completions', $body)
                 ->throw();
         } catch (ConnectionException|RequestException $e) {
