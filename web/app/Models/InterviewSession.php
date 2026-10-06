@@ -29,6 +29,7 @@ class InterviewSession extends Model
         'audio_duration_ms',
         'asr_model',
         'speaker_model',
+        'is_test_data',
     ];
 
     protected function casts(): array
@@ -36,6 +37,7 @@ class InterviewSession extends Model
         return [
             'started_at' => 'datetime',
             'ended_at' => 'datetime',
+            'is_test_data' => 'boolean',
         ];
     }
 

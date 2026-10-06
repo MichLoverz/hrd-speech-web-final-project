@@ -7,6 +7,7 @@ use App\Models\Candidate;
 use App\Models\InterviewSession;
 use App\Models\JobOpening;
 use App\Models\User;
+use App\Services\Scorecard\ScorecardGenerator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -100,7 +101,7 @@ class InterviewSessionController extends Controller
             ->with('status', 'Sesi wawancara dibuat sebagai draf.');
     }
 
-    public function show(Request $request, InterviewSession $interviewSession): View
+    public function show(Request $request, InterviewSession $interviewSession, ScorecardGenerator $generator): View
     {
         $this->authorize('view', $interviewSession);
 
@@ -110,7 +111,8 @@ class InterviewSessionController extends Controller
             'panel',
             'consents',
             'answers.question',
-            'analysisResult',
+            'analysisResult.scores.criterion',
+            'analysisResult.scores.evidenceQuotes.answer.question',
             'manualAssessments.rater',
             'manualAssessments.scores',
             'transcriptSegments',
@@ -128,6 +130,10 @@ class InterviewSessionController extends Controller
             'session' => $interviewSession,
             'myAssessment' => $mine,
             'otherAssessments' => $others,
+            // Same blind rule for the AI draft. Test sessions are exempt: nobody's score is at stake.
+            'canSeeAi' => $interviewSession->is_test_data || $user->isAdmin() || ($mine?->isSubmitted() ?? false),
+            'scorecardRefusal' => $generator->refusal($interviewSession),
+            'llmTestOnly' => (bool) config('services.llm.test_data_only'),
         ]);
     }
 

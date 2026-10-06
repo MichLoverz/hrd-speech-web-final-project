@@ -211,6 +211,14 @@
                 <p class="text-sm text-pencil">Nilai tiap kriteria 1–5. Setelah dikirim, penilaian terkunci dan penilaian panel lain baru terlihat.</p>
             @endif
         </div>
+        <details class="mb-4 text-sm max-w-prose">
+            <summary class="cursor-pointer text-ink-soft">Arti skor 1–5 (sama dengan yang dipakai draf AI)</summary>
+            <dl class="mt-2 space-y-1">
+                @foreach (\App\Support\ScoreScale::ANCHORS as $n => $text)
+                    <div><dt class="inline font-semibold">{{ $n }}</dt> <dd class="inline">{{ $text }}</dd></div>
+                @endforeach
+            </dl>
+        </details>
 
         @if ($opening->criteria->isEmpty())
             <div class="empty">Lowongan ini belum punya kriteria, jadi belum ada yang bisa dinilai.</div>
@@ -234,7 +242,7 @@
                             <div class="mt-2 flex items-center gap-4" role="radiogroup" aria-label="Skor {{ $criterion->name }}">
                                 @for ($i = 1; $i <= 5; $i++)
                                     <label class="inline-flex items-center gap-1.5 text-sm cursor-pointer">
-                                        <input type="radio" name="scores[{{ $criterion->id }}]" value="{{ $i }}" class="field-radio" @checked((int) $current === $i) required>
+                                        <input type="radio" name="scores[{{ $criterion->id }}]" value="{{ $i }}" class="field-radio" @checked((int) $current === $i) required title="{{ \App\Support\ScoreScale::ANCHORS[$i] }}">
                                         {{ $i }}
                                     </label>
                                 @endfor
@@ -313,4 +321,6 @@
             <p class="text-sm text-pencil">Belum ada penilaian dari anggota panel lain.</p>
         </div>
     @endif
+
+    @include('interview-sessions._scorecard')
 </x-page>

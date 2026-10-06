@@ -12,6 +12,7 @@ use App\Http\Controllers\ManualAssessmentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\RecordingController;
+use App\Http\Controllers\ScorecardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('job-openings.index'));
@@ -47,6 +48,9 @@ Route::middleware('auth')->group(function () {
     Route::post('interview-sessions/{interviewSession}/live/finish', [LiveInterviewController::class, 'finish'])->name('live.finish');
     Route::post('interview-sessions/{interviewSession}/live/rebuild', [LiveInterviewController::class, 'rebuild'])->name('live.rebuild');
     Route::post('interview-sessions/{interviewSession}/live/reset', [LiveInterviewController::class, 'reset'])->name('live.reset');
+
+    // Phase 4: draft scorecard (queued)
+    Route::post('interview-sessions/{interviewSession}/scorecard', [ScorecardController::class, 'store'])->name('scorecard.store');
     Route::patch('segments/{segment}', [LiveInterviewController::class, 'updateSegment'])->name('segments.update');
 
     // Criteria and questions are edited inline from the job opening page.

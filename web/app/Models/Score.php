@@ -15,6 +15,7 @@ class Score extends Model
         'analysis_result_id',
         'criterion_id',
         'score',
+        'rationale',
         'strengths',
         'weaknesses',
         'edited_by_human',

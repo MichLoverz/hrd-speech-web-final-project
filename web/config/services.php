@@ -71,6 +71,8 @@ return [
         // The Gemini free tier lets Google staff read inputs: true = only for read scripts and made-up
         // test interviews, never for participants. Set false only for a paid, no-training provider.
         'test_data_only' => (bool) env('LLM_TEST_DATA_ONLY', true),
+        // ADR-004 condition used by the button: full transcript (A) or retrieved sentences only (B).
+        'scorecard_condition' => env('SCORECARD_CONDITION', 'full'),
     ],
 
     'slack' => [
