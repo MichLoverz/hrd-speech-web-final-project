@@ -131,7 +131,7 @@ erDiagram
         bigint id PK
         bigint analysis_result_id FK
         bigint criterion_id FK
-        tinyint score "null = tidak ada bukti"
+        decimal score "0-10 langkah 0,5; null = tidak ada bukti"
         text rationale
         json strengths
         json weaknesses
@@ -159,7 +159,7 @@ erDiagram
         bigint id PK
         bigint manual_assessment_id FK
         bigint criterion_id FK
-        tinyint score
+        decimal score "0-10 langkah 0,5"
         text notes
     }
 ```

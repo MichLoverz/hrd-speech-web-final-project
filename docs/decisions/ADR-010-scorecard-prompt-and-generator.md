@@ -1,6 +1,6 @@
 # ADR-010: Prompt kartu skor v1 dan pembuatnya
 
-Tanggal: 2026-10-07 · Status: diterima, kecuali skala 1–5 yang menunggu persetujuan mahasiswa (§1)
+Tanggal: 2026-10-07 · Status: diterima. §1 diganti oleh bagian "Perubahan: skala 0–10" di bawah (prompt v2)
 
 ## Konteks
 
@@ -73,3 +73,33 @@ Detail lengkapnya ada di `docs/experiments/raw/nlp/2026-10-07_scorecard-demo-run
 - Halaman tinjau, sunting, dan setujui untuk HRD adalah langkah berikutnya. Tampilan kartu skor yang ada sekarang masih hanya-baca.
 - Kandidat perbaikan prompt v2 (setelah ada data nyata, bukan sekarang): minta model menandai kriteria yang buktinya hanya dari bagian transkrip yang rusak; beri ambang relevansi minimum pada retrieval.
 - Model tetap memakai teks pertanyaan untuk menafsirkan ASR yang rusak. Apakah ini membantu atau berbahaya harus diukur terhadap penilaian manusia; tidak bisa diputuskan dari satu sesi bacaan.
+
+## Perubahan 2026-10-07: skala 0–10, kelipatan 0,5 (prompt v2)
+
+Mahasiswa meminta skala diganti menjadi 0–10 dengan koma, tanpa label kata seperti "Cukup", "Baik", atau "Sangat baik". Alasannya, label membuat penilaian rancu: orang menilai berdasarkan labelnya, bukan isi jawabannya. Diputuskan sebelum ada satu pun penilaian manual sungguhan.
+
+| Pilihan | Keputusan | Alasan |
+|---|---|---|
+| Rentang | 0–10 | permintaan mahasiswa; total berbobot dibaca alami ("7,8/10") |
+| Kehalusan | **kelipatan 0,5**, bukan koma bebas | tidak ada penilai yang bisa membedakan jawaban 7,3 dari 7,4 secara konsisten; koma bebas hanya menambah derau antarpenilai dan presisi palsu dari LLM |
+| Label kata | **dihapus** | sesuai alasan mahasiswa |
+| Patokan | **tetap ada di 0 / 2,5 / 5 / 7,5 / 10**, sebagai titik acuan, bukan kategori | tanpa patokan, setiap penilai (dan model) punya arti sendiri untuk "7", sehingga metrik agreement tidak bermakna |
+| "Tidak ada bukti" | tetap terpisah dari 0 | 0 = menjawab tapi keliru; tidak ada bukti = kriteria tidak dinilai |
+
+| Skor | Patokan |
+|---|---|
+| 0 | Tidak menjawab, atau jawabannya keliru |
+| 2,5 | Menyentuh topik tetapi umum, tanpa contoh konkret |
+| 5 | Benar dan ada contoh, tetapi langkah atau hasilnya kurang jelas |
+| 7,5 | Contoh konkret dengan langkah dan alasan yang jelas |
+| 10 | Contoh konkret, langkah dan alasan jelas, hasil terukur, dan menyebut pertimbangan atau pelajaran |
+
+Implementasi:
+- `scores.score` dan `manual_scores.score` menjadi `decimal(3,1)`. Baris lama di database dev dipetakan 1→0, 2→2,5, 3→5, 4→7,5, 5→10 supaya tiap skor lama jatuh di patokan yang menggambarkan jenis jawaban yang sama.
+- Form manual memakai pilihan 0–10 (langkah 0,5) dengan validasi `multiple_of:0.5`.
+- Prompt **v2**. Skor model yang tidak tepat di kelipatan 0,5 dibulatkan ke 0,5 terdekat dan dihitung di statistik (`snapped_scores`), supaya penyimpangan prompt terlihat. Skor di luar 0–10 dianggap tidak ada bukti.
+- Angka ditampilkan dengan koma Indonesia ("7,5"), tanpa label.
+
+**Dampak ke evaluasi:** agreement tidak lagi diukur sebagai persentase skor yang sama persis atau dengan kappa, tetapi dengan **rata-rata selisih absolut (MAE)** ditambah korelasi antara skor AI dan skor manusia. Untuk skala 0–10, ini juga lebih mudah dijelaskan ("AI rata-rata berbeda 0,8 poin dari penilai").
+
+Uji di sesi demo (data uji, `gemini-3.5-flash`, dua run identik): Teknis **8,5**, Pemecahan masalah **7,5**, Komunikasi tidak ada bukti, Kerja tim **5**; 4 kutipan exact; tidak ada skor yang perlu dibulatkan. Bandingkan dengan v1 (5/4/–/3, kalau dipetakan menjadi 10/7,5/–/5): dengan skala yang lebih halus, model tidak lagi memberi nilai maksimal untuk jawaban yang tidak menyebut hasil terukur, yang lebih sesuai dengan patokan 10.

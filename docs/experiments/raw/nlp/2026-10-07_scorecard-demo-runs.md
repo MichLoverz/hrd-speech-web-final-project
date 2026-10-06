@@ -127,3 +127,55 @@ Ringkasan: Kandidat menunjukkan pemahaman teknis backend yang kuat, khususnya da
 Kutipan: exact 4 · normalized 0 · fuzzy 0 · similar 0 · none 0 · dibuang 0 · pindah jawaban 0
 Model gemini-3.5-flash · token in 1739 / out 866 · 108675 ms · prompt v1
 ```
+
+## Tambahan: prompt v2 (skala 0–10)
+
+Dua run identik: 8,5 / 7,5 / tidak ada bukti / 5, 4 kutipan exact, 0 skor dibulatkan. Run ketiga ditolak dengan **429: kuota harian tier gratis `gemini-3.5-flash` = 20 permintaan per hari per model** (`GenerateRequestsPerDayPerProjectPerModel-FreeTier`, pulih ±2,5 jam kemudian).
+
+### v2 run 1
+
+```
+Sesi #5 · DATA UJI · kondisi full
+
+Ringkasan: Kandidat menunjukkan pemahaman teknis yang kuat dalam pengembangan backend, khususnya dalam optimasi database PostgreSQL/MySQL dan penanganan bug kompleks seperti race condition. Penjelasan mengenai penanganan query lambat sangat terstruktur dengan langkah-langkah konkret, meskipun tanggapan terkait kerja tim dan komunikasi non-teknis tidak tergali sepenuhnya karena keterbatasan transkrip.
+
+■ Pengalaman teknis: 8,5/10
+  Kandidat memiliki pengalaman konkret dalam migrasi database dan memberikan langkah-langkah optimasi query yang sangat jelas, mulai dari menganalisis slow query log hingga menerapkan indexing dan caching.
+  [exact] Saya cek slow query log dan jalankan explain untuk apakah query-nya melakukan full table scan Kalau iya, langkah pertama biasanya menabakan index yang tepat.
+  [exact] Kalau masalahnya ada di aplikasi sering kali itu n plus satu query. Jadi saya pakai eager loading dengan width di Laravel supaya jadi satu query saja
+■ Pemecahan masalah: 7,5/10
+  Kandidat menceritakan bug sulit berupa race condition pada antrean pembayaran dan menjelaskan metode pelacakan menggunakan structured logging dan perbandingan timestamp secara logis.
+  [exact] bagi yang paling sulit yang saya pernah temukan adalah race condition di payment QE Saya menemukannya dengan nambahkan Structure Logging lalu membandingkan timestamp
+■ Komunikasi: tidak ada bukti
+  Tidak ada bukti atau jawaban dari kandidat mengenai pertanyaan penjelasan API kepada orang non-programmer dalam transkrip yang disediakan.
+■ Kerja tim: 5/10
+  Kandidat menunjukkan sikap terbuka terhadap penolakan code review untuk melihat sudut pandang reviewer yang terlewat, namun transkrip jawaban sangat singkat dan terdapat kata-kata yang kurang jelas akibat kesalahan transkripsi.
+  [exact] kalau 4nya bisa ditabar, bisa bisa ditanyain 2-3nya karena sering kali refiur mulia etxkesi yang saya lewatkan
+
+Kutipan: exact 4 · normalized 0 · fuzzy 0 · similar 0 · none 0 · dibuang 0 · pindah jawaban 0
+Model gemini-3.5-flash · token in 1197 / out 869 · 5670 ms · prompt v2
+```
+
+### v2 run 2
+
+```
+Sesi #5 · DATA UJI · kondisi full
+
+Ringkasan: Kandidat menunjukkan pemahaman teknis yang kuat dalam pengembangan backend, khususnya dalam optimasi database PostgreSQL/MySQL dan penanganan bug kompleks seperti race condition. Penjelasan mengenai penanganan query lambat sangat terstruktur dan menggunakan metode yang terukur, meskipun tanggapan terkait kerja tim dan komunikasi non-teknis masih sangat singkat.
+
+■ Pengalaman teknis: 8,5/10
+  Kandidat memberikan contoh konkret migrasi database dan menjelaskan langkah-langkah optimasi query lambat secara sistematis menggunakan explain, indexing, eager loading, dan caching.
+  [exact] Saya cek slow query log dan jalankan explain untuk apakah query-nya melakukan full table scan Kalau iya, langkah pertama biasanya menabakan index yang tepat.
+  [exact] Kalau masalahnya ada di aplikasi sering kali itu n plus satu query. Jadi saya pakai eager loading dengan width di Laravel
+■ Pemecahan masalah: 7,5/10
+  Kandidat menceritakan bug sulit berupa race condition pada antrean pembayaran dan menjelaskan metode penyelesaiannya menggunakan structured logging secara jelas.
+  [exact] bagi yang paling sulit yang saya pernah temukan adalah race condition di payment QE Saya menemukannya dengan nambahkan Structure Logging lalu membandingkan timestamp
+■ Komunikasi: tidak ada bukti
+  Tidak ada bukti atau jawaban dari kandidat untuk pertanyaan mengenai penjelasan API kepada orang non-teknis.
+■ Kerja tim: 5/10
+  Kandidat menunjukkan sikap terbuka terhadap code review, namun penjelasannya sangat singkat dan terdapat beberapa kata yang rusak akibat transkripsi sehingga kurang jelas.
+  [exact] kalau 4nya bisa ditabar, bisa bisa ditanyain 2-3nya karena sering kali refiur mulia etxkesi yang saya lewatkan
+
+Kutipan: exact 4 · normalized 0 · fuzzy 0 · similar 0 · none 0 · dibuang 0 · pindah jawaban 0
+Model gemini-3.5-flash · token in 1197 / out 845 · 5263 ms · prompt v2
+```
