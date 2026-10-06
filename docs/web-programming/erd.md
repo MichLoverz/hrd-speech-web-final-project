@@ -74,6 +74,7 @@ erDiagram
         timestamp started_at
         timestamp ended_at
         enum status "draft ... approved"
+        boolean is_test_data "naskah/rekaan, bukan peserta"
     }
     interview_session_interviewers {
         bigint interview_session_id PK_FK
@@ -117,12 +118,21 @@ erDiagram
         enum status "draft | edited | approved"
         bigint approved_by FK
         string prompt_version
+        string condition "full | retrieval"
+        string model_used
+        string provider
+        int prompt_tokens
+        int completion_tokens
+        decimal cost_usd
+        int llm_latency_ms
+        text error_message
     }
     scores {
         bigint id PK
         bigint analysis_result_id FK
         bigint criterion_id FK
-        tinyint score
+        tinyint score "null = tidak ada bukti"
+        text rationale
         json strengths
         json weaknesses
         boolean edited_by_human

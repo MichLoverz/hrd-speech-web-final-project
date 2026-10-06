@@ -53,7 +53,7 @@ Buka <http://127.0.0.1:8000>. Akun contoh:
 
 - `npm run dev` (terminal terpisah) — Vite hot reload untuk CSS/Blade.
 - `php artisan test` — 40 tes, memakai SQLite in-memory, tidak menyentuh database MariaDB.
-- `php artisan queue:work` — baru diperlukan di Fase 4 (analisis kartu skor).
+- `php artisan queue:work` — diperlukan untuk tombol "Buat kartu skor" (Fase 4).
 
 ## Masalah umum
 
@@ -92,3 +92,14 @@ php artisan serve
 Cek: <http://127.0.0.1:8765/health> harus `{"ok": true, ...}`. Alamat service diatur di `web/.env` (`ASR_HTTP_URL`, `ASR_WS_URL`, `ASR_USE_PROMPT`).
 
 Perekaman di browser memakai mikrofon lewat `getUserMedia`, yang hanya diizinkan pada `localhost`/`127.0.0.1` atau HTTPS. Untuk mengakses dari HP di jaringan yang sama diperlukan HTTPS lokal (Fase 5).
+
+## Kartu skor AI (Fase 4)
+
+1. Isi `LLM_API_KEY` di `web/.env`. Untuk pengembangan pakai key Gemini dari <https://aistudio.google.com>; cek dengan `php artisan llm:ping`. Gemini gratis **hanya untuk data uji** (ADR-009).
+2. Jalankan layanan Python (lihat bagian sebelumnya). Dibutuhkan untuk verifikasi kutipan tingkat parafrase dan kondisi retrieval.
+3. Buat sesi uji yang sudah selesai dari naskah bacaan: `php artisan hirenote:demo-session` (butuh `php artisan db:seed` sebelumnya).
+4. Pilih salah satu:
+   - di terminal: `php artisan hirenote:scorecard <id>` (hasil langsung tercetak), atau
+   - di browser: buka sesinya, klik **Buat kartu skor**, dengan `php artisan queue:work` berjalan di terminal lain, lalu muat ulang halaman.
+
+Kalau muncul `503 ... high demand`, server Gemini sedang penuh. Aplikasi sudah mencoba ulang 3 kali; tunggu sebentar lalu coba lagi, atau sementara pakai `LLM_MODEL=gemini-3.5-flash-lite`.
