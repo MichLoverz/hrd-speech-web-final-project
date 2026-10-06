@@ -50,7 +50,7 @@ class CandidateComparisonController extends Controller
         ]);
     }
 
-    /** Weighted mean on the 1-5 scale, ignoring criteria that have no score yet. */
+    /** Weighted mean on the 0-10 scale, ignoring criteria that have no score yet. */
     private function weightedTotal(Collection $criteria, Collection $perCriterion): ?float
     {
         $sum = 0;

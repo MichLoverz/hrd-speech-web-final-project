@@ -56,8 +56,8 @@
                 <div>
                     <div class="flex flex-wrap items-baseline justify-between gap-2">
                         <span class="font-semibold">{{ $score->criterion->name }} <span class="text-sm text-pencil font-normal">×{{ $score->criterion->weight }}</span></span>
-                        @if ($score->score)
-                            <span class="tabular-nums"><span class="text-lg font-semibold">{{ $score->score }}</span><span class="text-pencil">/5</span> <span class="text-sm text-pencil">{{ \App\Support\ScoreScale::label($score->score) }}</span></span>
+                        @if ($score->score !== null)
+                            <span class="tabular-nums"><span class="text-lg font-semibold">{{ \App\Support\ScoreScale::format($score->score) }}</span><span class="text-pencil">/10</span></span>
                         @else
                             <span class="text-sm text-pencil">tidak ada bukti — tidak dinilai</span>
                         @endif
@@ -102,7 +102,7 @@
         </div>
 
         @php $weighted = $result->weightedScore(); @endphp
-        <p class="mt-8 font-semibold">Rata-rata berbobot (kriteria yang dinilai): {{ $weighted ?? '–' }}</p>
+        <p class="mt-8 font-semibold">Rata-rata berbobot (kriteria yang dinilai): {{ \App\Support\ScoreScale::format($weighted) }}<span class="text-pencil font-normal">/10</span></p>
 
         <p class="mt-4 text-xs text-pencil">
             {{ $result->model_used }} via {{ $result->provider }} · prompt {{ $result->prompt_version }} · kondisi {{ $result->condition === 'retrieval' ? 'retrieval' : 'transkrip penuh' }}

@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\AnalysisResult;
 use App\Models\InterviewSession;
+use App\Services\Llm\LlmQuotaExhausted;
 use App\Services\Scorecard\ScorecardGenerator;
 use App\Services\Scorecard\ScorecardNotAllowed;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -35,8 +36,8 @@ class GenerateScorecard implements ShouldQueue
     {
         try {
             $generator->generate($this->session, $this->condition);
-        } catch (ScorecardNotAllowed $e) {
-            $this->fail($e);   // waiting will not fix a missing consent
+        } catch (ScorecardNotAllowed|LlmQuotaExhausted $e) {
+            $this->fail($e);   // waiting minutes will not fix a missing consent or a daily quota
         }
     }
 

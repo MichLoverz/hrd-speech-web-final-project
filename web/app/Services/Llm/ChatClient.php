@@ -41,6 +41,26 @@ class ChatClient
     }
 
     /**
+     * Seconds until a 429 clears when it is a quota that waiting a few seconds will not fix
+     * (Gemini free tier: 20 requests/day/model, answered with a RetryInfo delay of hours);
+     * null for an ordinary rate limit or any other response.
+     */
+    private static function quotaWait(\Illuminate\Http\Client\Response $response): ?int
+    {
+        if ($response->status() !== 429) {
+            return null;
+        }
+        $body = $response->body();
+        preg_match('/"retryDelay":\s*"(\d+)(?:\.\d+)?s"/', $body, $m);
+        $delay = isset($m[1]) ? (int) $m[1] : null;
+        if ($delay !== null && $delay > 60) {
+            return $delay;
+        }
+
+        return str_contains($body, 'PerDay') ? ($delay ?? 0) : null;
+    }
+
+    /**
      * @param  list<array{role: string, content: string}>  $messages
      * @param  array|null  $schema  JSON Schema the reply must follow (structured output)
      */
@@ -74,8 +94,8 @@ class ChatClient
 
         $started = microtime(true);
         try {
-            // Overload (503 "high demand"), rate limits and dropped connections are routine on the
-            // free tier and pass within seconds; a 4xx like a bad key or bad schema is not retried.
+            // Overload (503 "high demand"), per-minute rate limits and dropped connections pass within
+            // seconds; a 4xx like a bad key or bad schema, or an exhausted daily quota, does not.
             $response = Http::withToken((string) $this->config['api_key'])
                 ->timeout($this->config['timeout'])
                 ->acceptJson()
@@ -83,12 +103,18 @@ class ChatClient
                     (int) ($this->config['retries'] ?? 3),
                     fn (int $attempt) => (int) ($this->config['retry_base_ms'] ?? 2000) * 2 ** ($attempt - 1),
                     fn (\Throwable $e) => $e instanceof ConnectionException
-                        || ($e instanceof RequestException && in_array($e->response->status(), [429, 500, 502, 503, 504], true)),
+                        || ($e instanceof RequestException && in_array($e->response->status(), [429, 500, 502, 503, 504], true)
+                            && self::quotaWait($e->response) === null),
                     throw: false,
                 )
                 ->post(rtrim($this->config['base_url'], '/').'/chat/completions', $body)
                 ->throw();
         } catch (ConnectionException|RequestException $e) {
+            $wait = $e instanceof RequestException ? self::quotaWait($e->response) : null;
+            if ($wait !== null) {
+                throw new LlmQuotaExhausted(sprintf('Kuota harian penyedia LLM habis untuk model %s. Coba lagi sekitar %d jam %d menit lagi, atau ganti LLM_MODEL (kuota dihitung per model).',
+                    $this->model(), intdiv($wait, 3600), intdiv($wait % 3600, 60)), previous: $e);
+            }
             throw new LlmUnavailable('LLM request failed: '.$e->getMessage(), previous: $e);
         }
 

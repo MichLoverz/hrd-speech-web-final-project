@@ -20,7 +20,7 @@ class ManualScore extends Model
     protected function casts(): array
     {
         return [
-            'score' => 'integer',
+            'score' => 'float',
         ];
     }
 

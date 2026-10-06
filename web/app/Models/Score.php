@@ -24,7 +24,7 @@ class Score extends Model
     protected function casts(): array
     {
         return [
-            'score' => 'integer',
+            'score' => 'float',
             'strengths' => 'array',
             'weaknesses' => 'array',
             'edited_by_human' => 'boolean',

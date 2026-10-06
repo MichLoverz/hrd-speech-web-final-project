@@ -110,9 +110,30 @@ class Phase1CrudTest extends TestCase
             'submit' => 1,
         ]);
         $mine = ManualAssessment::where('rater_id', $rater->id)->firstOrFail();
-        $this->assertSame(5, $mine->scores->firstWhere('criterion_id', $teknis->id)->score);
+        $this->assertSame(5.0, $mine->scores->firstWhere('criterion_id', $teknis->id)->score);
         // Weighted: (5*3 + 3*1) / 4 = 4.5
         $this->assertSame(4.5, $mine->weightedScore());
+    }
+
+    public function test_manual_scores_use_the_zero_to_ten_scale_in_half_steps(): void
+    {
+        $hrd = User::factory()->create(['role' => User::ROLE_HRD]);
+        $opening = $this->openingWithCriteria($hrd);
+        $session = $this->sessionFor($opening, $hrd);
+        $ids = $opening->criteria->pluck('id');
+
+        foreach ([7.3, 10.5, -1] as $bad) {
+            $this->actingAs($hrd)->post(route('manual-assessments.save', $session), [
+                'scores' => $ids->mapWithKeys(fn ($id) => [$id => $bad])->all(), 'submit' => 0,
+            ])->assertSessionHasErrors();
+        }
+        $this->assertSame(0, ManualAssessment::count());
+
+        $this->actingAs($hrd)->post(route('manual-assessments.save', $session), [
+            'scores' => $ids->mapWithKeys(fn ($id) => [$id => 7.5])->all(), 'submit' => 0,
+        ])->assertSessionHasNoErrors();
+        $this->assertSame(7.5, ManualAssessment::sole()->scores->first()->score);
+        $this->actingAs($hrd)->get(route('interview-sessions.show', $session))->assertSee('Patokan skor 0–10');
     }
 
     public function test_manual_scoring_requires_every_criterion(): void
@@ -163,6 +184,6 @@ class Phase1CrudTest extends TestCase
         $response->assertSeeInOrder(['Kandidat Tinggi', 'Kandidat Rendah']);
         $response->assertSee('di atas anggaran');
         // Kandidat Tinggi: (5*3 + 2*1)/4 = 4.25
-        $response->assertSee('4.25');
+        $response->assertSee('4,25');
     }
 }

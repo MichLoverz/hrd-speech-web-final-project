@@ -21,7 +21,7 @@ class ManualAssessmentController extends Controller
 
         $data = $request->validate([
             'scores' => ['required', 'array'],
-            'scores.*' => ['required', 'integer', 'min:1', 'max:5'],
+            'scores.*' => ['required', 'numeric', 'min:0', 'max:10', 'multiple_of:0.5'],   // ScoreScale
             'notes' => ['nullable', 'array'],
             'notes.*' => ['nullable', 'string', 'max:1000'],
             'overall_notes' => ['nullable', 'string', 'max:2000'],

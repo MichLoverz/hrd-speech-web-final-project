@@ -208,14 +208,15 @@
             @if ($locked)
                 <span class="status status-done">Dikirim {{ $myAssessment->submitted_at->translatedFormat('d M Y, H:i') }}</span>
             @else
-                <p class="text-sm text-pencil">Nilai tiap kriteria 1–5. Setelah dikirim, penilaian terkunci dan penilaian panel lain baru terlihat.</p>
+                <p class="text-sm text-pencil">Nilai tiap kriteria 0–10, kelipatan 0,5. Setelah dikirim, penilaian terkunci dan penilaian panel lain baru terlihat.</p>
             @endif
         </div>
         <details class="mb-4 text-sm max-w-prose">
-            <summary class="cursor-pointer text-ink-soft">Arti skor 1–5 (sama dengan yang dipakai draf AI)</summary>
+            <summary class="cursor-pointer text-ink-soft">Patokan skor 0–10 (sama dengan yang dipakai draf AI)</summary>
+            <p class="mt-2 text-pencil">Titik patokan, bukan kategori. Skor di antaranya boleh dipakai, misalnya 6 atau 8,5.</p>
             <dl class="mt-2 space-y-1">
                 @foreach (\App\Support\ScoreScale::ANCHORS as $n => $text)
-                    <div><dt class="inline font-semibold">{{ $n }}</dt> <dd class="inline">{{ $text }}</dd></div>
+                    <div><dt class="inline font-semibold tabular-nums">{{ \App\Support\ScoreScale::format((float) $n) }}</dt> <dd class="inline">{{ $text }}</dd></div>
                 @endforeach
             </dl>
         </details>
@@ -239,13 +240,14 @@
                             @if ($criterion->description)
                                 <p class="text-sm text-ink-soft">{{ $criterion->description }}</p>
                             @endif
-                            <div class="mt-2 flex items-center gap-4" role="radiogroup" aria-label="Skor {{ $criterion->name }}">
-                                @for ($i = 1; $i <= 5; $i++)
-                                    <label class="inline-flex items-center gap-1.5 text-sm cursor-pointer">
-                                        <input type="radio" name="scores[{{ $criterion->id }}]" value="{{ $i }}" class="field-radio" @checked((int) $current === $i) required title="{{ \App\Support\ScoreScale::ANCHORS[$i] }}">
-                                        {{ $i }}
-                                    </label>
-                                @endfor
+                            <div class="mt-2 flex items-center gap-2">
+                                <select name="scores[{{ $criterion->id }}]" class="field-select w-28 tabular-nums" required aria-label="Skor {{ $criterion->name }}">
+                                    <option value="">–</option>
+                                    @foreach (\App\Support\ScoreScale::values() as $v)
+                                        <option value="{{ $v }}" @selected($current !== null && $current !== '' && abs((float) $current - $v) < 0.01)>{{ \App\Support\ScoreScale::format($v) }}</option>
+                                    @endforeach
+                                </select>
+                                <span class="text-sm text-pencil">/10</span>
                             </div>
                             @error("scores.{$criterion->id}")<span class="field-error">{{ $message }}</span>@enderror
                             <input type="text" name="notes[{{ $criterion->id }}]" value="{{ $note }}" class="field-input mt-2 text-sm" placeholder="Catatan singkat (opsional)" maxlength="1000">
@@ -293,20 +295,20 @@
                             <tr>
                                 <td>{{ $criterion->name }} <span class="text-sm text-pencil">×{{ $criterion->weight }}</span></td>
                                 @if ($myAssessment?->isSubmitted())
-                                    <td class="text-right tabular-nums">{{ $myScores->get($criterion->id)?->score ?? '–' }}</td>
+                                    <td class="text-right tabular-nums">{{ \App\Support\ScoreScale::format($myScores->get($criterion->id)?->score) }}</td>
                                 @endif
                                 @foreach ($otherAssessments as $assessment)
-                                    <td class="text-right tabular-nums">{{ $assessment->scores->firstWhere('criterion_id', $criterion->id)?->score ?? '–' }}</td>
+                                    <td class="text-right tabular-nums">{{ \App\Support\ScoreScale::format($assessment->scores->firstWhere('criterion_id', $criterion->id)?->score) }}</td>
                                 @endforeach
                             </tr>
                         @endforeach
                         <tr>
                             <td class="font-semibold">Rata-rata berbobot</td>
                             @if ($myAssessment?->isSubmitted())
-                                <td class="text-right tabular-nums font-semibold">{{ $myAssessment->weightedScore() ?? '–' }}</td>
+                                <td class="text-right tabular-nums font-semibold">{{ \App\Support\ScoreScale::format($myAssessment->weightedScore()) }}</td>
                             @endif
                             @foreach ($otherAssessments as $assessment)
-                                <td class="text-right tabular-nums font-semibold">{{ $assessment->weightedScore() ?? '–' }}</td>
+                                <td class="text-right tabular-nums font-semibold">{{ \App\Support\ScoreScale::format($assessment->weightedScore()) }}</td>
                             @endforeach
                         </tr>
                     </tbody>

@@ -94,7 +94,7 @@ class Phase4ScorecardTest extends TestCase
     private function reply(array $overrides = []): array
     {
         return array_merge(['overall_summary' => 'Kandidat menjelaskan langkah diagnosis query dan sikap terhadap code review.', 'criteria' => [
-            ['criterion_id' => $this->c['tech'], 'has_evidence' => true, 'score' => 4, 'rationale' => 'Langkah jelas.',
+            ['criterion_id' => $this->c['tech'], 'has_evidence' => true, 'score' => 7.5, 'rationale' => 'Langkah jelas.',
                 'strengths' => ['Mengukur sebelum mengoptimasi'], 'weaknesses' => [], 'evidence' => [
                     ['answer_id' => $this->a['q1'], 'quote' => 'Saya cek slow query log dulu.', 'supports' => 'strength'],
                     // The model "fixed" the ASR error: fuzzy, not verified.
@@ -104,7 +104,7 @@ class Phase4ScorecardTest extends TestCase
                     // Invented.
                     ['answer_id' => $this->a['q1'], 'quote' => 'Saya memimpin migrasi ke microservices', 'supports' => 'strength'],
                 ]],
-            ['criterion_id' => $this->c['team'], 'has_evidence' => true, 'score' => 9, 'rationale' => 'Skor di luar skala.',
+            ['criterion_id' => $this->c['team'], 'has_evidence' => true, 'score' => 12, 'rationale' => 'Skor di luar skala.',
                 'strengths' => [], 'weaknesses' => [], 'evidence' => []],
             ['criterion_id' => 999, 'has_evidence' => true, 'score' => 3, 'rationale' => 'Kriteria karangan.',
                 'strengths' => [], 'weaknesses' => [], 'evidence' => []],
@@ -146,7 +146,8 @@ class Phase4ScorecardTest extends TestCase
     {
         $messages = (new ScorecardPrompt)->messages($this->session);
 
-        $this->assertStringContainsString('Baik — contoh konkret dengan langkah dan alasan yang jelas.', $messages[0]['content']);
+        $this->assertStringContainsString('7,5 = Contoh konkret dengan langkah dan alasan yang jelas.', $messages[0]['content']);
+        $this->assertStringContainsString('kelipatan 0,5', $messages[0]['content']);
         $this->assertStringContainsString('termasuk salah ketik dan salah dengarnya', $messages[0]['content']);
         $this->assertStringContainsString("[answer_id {$this->a['q1']}]", $messages[1]['content']);
         $this->assertStringContainsString("criterion_id {$this->c['comm']}: Komunikasi", $messages[1]['content']);
@@ -160,8 +161,8 @@ class Phase4ScorecardTest extends TestCase
 
         $scores = $result->scores()->with('evidenceQuotes')->get()->keyBy('criterion_id');
         $this->assertCount(3, $scores, 'unknown criterion dropped, missing one added');
-        $this->assertSame(4, $scores[$this->c['tech']]->score);
-        $this->assertNull($scores[$this->c['team']]->score, 'score 9 is not a score');
+        $this->assertSame(7.5, $scores[$this->c['tech']]->score);
+        $this->assertNull($scores[$this->c['team']]->score, 'score 12 is outside the scale');
         $this->assertNull($scores[$this->c['comm']]->score);
         $this->assertSame('Model tidak menilai kriteria ini.', $scores[$this->c['comm']]->rationale);
 
@@ -178,9 +179,26 @@ class Phase4ScorecardTest extends TestCase
         $v = $result->raw_json['verification'];
         $this->assertSame([1, 1, 1, 1, 1, 1], [$v['exact'], $v['normalized'], $v['fuzzy'], $v['none'], $v['ignored_criteria'], $v['missing_criteria']]);
         $this->assertSame(1, $v['reattributed']);
-        $this->assertSame([1200, 400, 'v1', 'full', 'gemini'], [$result->prompt_tokens, $result->completion_tokens, $result->prompt_version, $result->condition, $result->provider]);
-        $this->assertSame(4.0, $result->weightedScore(), 'only scored criteria count');
+        $this->assertSame([1200, 400, 'v2', 'full', 'gemini'], [$result->prompt_tokens, $result->completion_tokens, $result->prompt_version, $result->condition, $result->provider]);
+        $this->assertSame(7.5, $result->weightedScore(), 'only scored criteria count');
         $this->assertSame('ready_for_review', $this->session->fresh()->status);
+    }
+
+    public function test_off_step_scores_snap_to_half_points_and_zero_is_a_real_score(): void
+    {
+        $this->fakeServices(['overall_summary' => '-', 'criteria' => [
+            ['criterion_id' => $this->c['tech'], 'has_evidence' => true, 'score' => 7.3, 'rationale' => '-', 'strengths' => [], 'weaknesses' => [], 'evidence' => []],
+            ['criterion_id' => $this->c['team'], 'has_evidence' => true, 'score' => 0, 'rationale' => 'Jawaban keliru.', 'strengths' => [], 'weaknesses' => [], 'evidence' => []],
+            ['criterion_id' => $this->c['comm'], 'has_evidence' => false, 'score' => 0, 'rationale' => 'Tidak dijawab.', 'strengths' => [], 'weaknesses' => [], 'evidence' => []],
+        ]]);
+
+        $result = $this->generator()->generate($this->session);
+
+        $scores = $result->scores->keyBy('criterion_id');
+        $this->assertSame(7.5, $scores[$this->c['tech']]->score);
+        $this->assertSame(0.0, $scores[$this->c['team']]->score, 'answered but wrong');
+        $this->assertNull($scores[$this->c['comm']]->score, 'no evidence is not zero');
+        $this->assertSame(1, $result->raw_json['verification']['snapped_scores']);
     }
 
     public function test_rerun_replaces_the_draft_and_invalid_json_saves_nothing(): void
@@ -232,7 +250,7 @@ class Phase4ScorecardTest extends TestCase
         // Test session: visible straight away, with the test-data notices.
         $this->actingAs($this->hrd)->get(route('interview-sessions.show', $this->session))
             ->assertOk()->assertSee($summary)->assertSee('Mode data uji')->assertSee('ejaan berbeda dari transkrip')
-            ->assertSee('Arti skor 1–5');
+            ->assertSee('Patokan skor 0–10')->assertSee('7,5');
 
         // Participant session: blind until this rater submits.
         $this->session->update(['is_test_data' => false]);

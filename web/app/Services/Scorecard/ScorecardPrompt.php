@@ -16,7 +16,7 @@ use App\Support\ScoreScale;
  */
 class ScorecardPrompt
 {
-    public const VERSION = 'v1';
+    public const VERSION = 'v2';   // v2: 0-10 scale in steps of 0.5 instead of 1-5 labels
 
     public const CONDITIONS = ['full', 'retrieval'];
 
@@ -34,7 +34,7 @@ class ScorecardPrompt
 
     public function system(): string
     {
-        $scale = collect(ScoreScale::ANCHORS)->map(fn ($text, $n) => "{$n} = {$text}")->implode("\n");
+        $scale = collect(ScoreScale::ANCHORS)->map(fn ($text, $n) => ScoreScale::format((float) $n)." = {$text}")->implode("\n");
 
         return <<<TXT
 Anda membantu HRD menyusun DRAF kartu skor untuk wawancara kerja terstruktur. Draf ini akan diperiksa, disunting, dan disetujui oleh manusia. Anda tidak memutuskan apakah kandidat diterima, dan tidak boleh memberi rekomendasi terima atau tolak.
@@ -43,9 +43,9 @@ ATURAN
 1. Nilai hanya isi jawaban kandidat di transkrip, dibandingkan dengan deskripsi tiap kriteria. Jangan memakai nama, jenis kelamin, usia, asal daerah, aksen, atau gaya bahasa sebagai dasar penilaian.
 2. Transkrip dibuat oleh pengenalan suara otomatis dan bisa berisi salah dengar, misalnya istilah teknis yang tertulis aneh atau angka yang janggal. Jangan menurunkan skor karena kata yang rusak akibat transkripsi. Kalau sebuah bagian terlalu rusak untuk dipahami, katakan itu di rationale, jangan menebak isinya.
 3. Setiap kekuatan dan kelemahan harus didukung kutipan di "evidence". Kutipan WAJIB disalin persis dari transkrip, kata demi kata, termasuk salah ketik dan salah dengarnya. Jangan membetulkan, meringkas, menggabungkan, atau menerjemahkan kutipan. Panjang kutipan 5–30 kata. Isi "answer_id" dengan nomor jawaban tempat kutipan itu berada.
-4. Kalau tidak ada jawaban yang memberi bukti untuk suatu kriteria, isi "has_evidence" dengan false dan "score" dengan 0, kosongkan strengths, weaknesses, dan evidence, lalu jelaskan di "rationale". Jangan memberi angka tanpa bukti. Kalau ada bukti, "has_evidence" true dan "score" 1–5.
+4. Kalau tidak ada jawaban yang memberi bukti untuk suatu kriteria, isi "has_evidence" dengan false (nilai "score" akan diabaikan), kosongkan strengths, weaknesses, dan evidence, lalu jelaskan di "rationale". Jangan memberi angka tanpa bukti. "Tidak ada bukti" berbeda dengan skor 0: skor 0 berarti kandidat menjawab tetapi jawabannya keliru.
 5. Kriteria boleh dinilai dari jawaban atas pertanyaan mana pun, tidak harus pertanyaan milik kriteria itu.
-6. Pakai skala ini, yang sama dengan skala penilai manusia:
+6. Skor 0–10 dengan kelipatan 0,5 (misalnya 6, 7,5, 8,5), skala yang sama dengan penilai manusia. Titik di bawah ini adalah patokan, bukan kategori; skor di antaranya boleh dipakai:
 {$scale}
 7. Tulis dalam bahasa Indonesia yang ringkas dan netral. "rationale" 1–3 kalimat. "overall_summary" 2–4 kalimat yang menggambarkan isi jawaban, bukan keputusan rekrutmen.
 TXT;
@@ -98,7 +98,7 @@ TXT;
 
     /**
      * Structured-output schema. Kept to features every provider supports (no type unions):
-     * "no evidence" is expressed with has_evidence=false rather than a nullable integer.
+     * "no evidence" is expressed with has_evidence=false rather than a nullable number.
      */
     public function schema(): array
     {
@@ -124,7 +124,7 @@ TXT;
                         'properties' => [
                             'criterion_id' => ['type' => 'integer'],
                             'has_evidence' => ['type' => 'boolean'],
-                            'score' => ['type' => 'integer', 'description' => '1-5; diabaikan bila has_evidence false'],
+                            'score' => ['type' => 'number', 'description' => '0-10, kelipatan 0.5; diabaikan bila has_evidence false'],
                             'rationale' => ['type' => 'string'],
                             'strengths' => ['type' => 'array', 'items' => ['type' => 'string']],
                             'weaknesses' => ['type' => 'array', 'items' => ['type' => 'string']],

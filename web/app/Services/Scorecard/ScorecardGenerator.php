@@ -9,6 +9,7 @@ use App\Services\Llm\ChatClient;
 use App\Services\Nlp\EvidenceRetriever;
 use App\Services\Nlp\QuoteMatch;
 use App\Services\Nlp\QuoteVerifier;
+use App\Support\ScoreScale;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -104,7 +105,7 @@ class ScorecardGenerator
 
     /**
      * Turns the model's JSON into rows, never trusting it: unknown or duplicate criteria are
-     * dropped, scores outside 1-5 become "no evidence", every quote is verified, and
+     * dropped, scores outside 0-10 become "no evidence", off-step scores snap to the nearest 0.5, every quote is verified, and
      * criteria the model skipped are added as unscored.
      *
      * @return array{0: list<array{score: array, quotes: list<array>}>, 1: array<string, int>}
@@ -113,7 +114,8 @@ class ScorecardGenerator
     {
         $criteria = $session->candidate->jobOpening->criteria->keyBy('id');
         $answers = $session->answers->keyBy('id');
-        $stats = array_fill_keys(array_keys(self::RANK), 0) + ['dropped_quotes' => 0, 'reattributed' => 0, 'ignored_criteria' => 0, 'missing_criteria' => 0];
+        $stats = array_fill_keys(array_keys(self::RANK), 0) + ['dropped_quotes' => 0, 'reattributed' => 0, 'ignored_criteria' => 0,
+            'missing_criteria' => 0, 'snapped_scores' => 0];
 
         $rows = [];
         foreach ($data['criteria'] as $item) {
@@ -124,8 +126,10 @@ class ScorecardGenerator
                 continue;
             }
 
-            $score = (int) ($item['score'] ?? 0);
-            $score = (($item['has_evidence'] ?? false) && $score >= 1 && $score <= 5) ? $score : null;
+            $score = ($item['has_evidence'] ?? false) ? ScoreScale::snap($item['score'] ?? null) : null;
+            if ($score !== null && abs($score - (float) $item['score']) > 1e-9) {
+                $stats['snapped_scores']++;   // e.g. 7.3 -> 7.5: kept, but counted so prompt drift shows up
+            }
 
             $quotes = [];
             foreach ($item['evidence'] ?? [] as $ev) {

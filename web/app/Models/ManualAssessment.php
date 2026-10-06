@@ -46,7 +46,7 @@ class ManualAssessment extends Model
         return $this->submitted_at !== null;
     }
 
-    /** Weighted average on the 1-5 scale, using each criterion's weight. Null if no scores. */
+    /** Weighted average on the 0-10 scale, using each criterion's weight. Null if no scores. */
     public function weightedScore(): ?float
     {
         $scores = $this->scores->loadMissing('criterion');

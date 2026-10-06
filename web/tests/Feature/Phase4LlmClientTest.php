@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Services\Llm\ChatClient;
+use App\Services\Llm\LlmQuotaExhausted;
 use App\Services\Llm\LlmUnavailable;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -77,6 +78,33 @@ class Phase4LlmClientTest extends TestCase
         $r = $this->client()->complete([['role' => 'user', 'content' => 'x']]);
 
         $this->assertSame(['ok' => true], $r->json());
+        Http::assertSentCount(2);
+    }
+
+    public function test_exhausted_daily_quota_is_not_retried_and_says_when_it_resets(): void
+    {
+        // Shape of the real Gemini free-tier reply seen on 2026-10-07 (20 requests/day/model).
+        Http::fake(['*' => Http::response([['error' => ['code' => 429, 'status' => 'RESOURCE_EXHAUSTED', 'details' => [
+            ['@type' => 'type.googleapis.com/google.rpc.QuotaFailure', 'violations' => [['quotaId' => 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaValue' => '20']]],
+            ['@type' => 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay' => '8889s'],
+        ]]]], 429)]);
+
+        try {
+            $this->client()->complete([['role' => 'user', 'content' => 'x']]);
+            $this->fail('expected LlmQuotaExhausted');
+        } catch (LlmQuotaExhausted $e) {
+            $this->assertStringContainsString('2 jam 28 menit', $e->getMessage());
+        }
+        Http::assertSentCount(1);
+    }
+
+    public function test_short_rate_limit_is_still_retried(): void
+    {
+        Http::fakeSequence()
+            ->push(['error' => ['code' => 429, 'details' => [['@type' => 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay' => '5s']]]], 429)
+            ->push($this->reply('{"ok":true}'));
+
+        $this->assertSame(['ok' => true], $this->client()->complete([['role' => 'user', 'content' => 'x']])->json());
         Http::assertSentCount(2);
     }
 

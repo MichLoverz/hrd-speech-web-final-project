@@ -8,6 +8,7 @@ use App\Services\Nlp\NlpServiceUnavailable;
 use App\Services\Scorecard\ScorecardGenerator;
 use App\Services\Scorecard\ScorecardInvalid;
 use App\Services\Scorecard\ScorecardNotAllowed;
+use App\Support\ScoreScale;
 use Illuminate\Console\Command;
 
 /**
@@ -47,7 +48,7 @@ class GenerateScorecardCommand extends Command
         $this->line('Ringkasan: '.$result->overall_summary);
         $this->newLine();
         foreach ($result->scores as $score) {
-            $this->line(sprintf('■ %s: %s', $score->criterion->name, $score->score ?? 'tidak ada bukti'));
+            $this->line(sprintf('■ %s: %s', $score->criterion->name, $score->score === null ? 'tidak ada bukti' : ScoreScale::format($score->score).'/10'));
             $this->line('  '.$score->rationale);
             foreach ($score->evidenceQuotes as $q) {
                 $this->line(sprintf('  [%s%s] %s', $q->match_method, $q->match_score !== null ? ' '.$q->match_score : '', $q->quote_text));

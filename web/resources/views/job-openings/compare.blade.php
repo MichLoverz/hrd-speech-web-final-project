@@ -32,9 +32,9 @@
                             <tr>
                                 <td><a href="{{ route('candidates.show', $row['candidate']) }}" class="font-semibold">{{ $row['candidate']->name }}</a></td>
                                 @foreach ($opening->criteria as $criterion)
-                                    <td class="text-right tabular-nums">{{ $row['per_criterion'][$criterion->id] ?? '–' }}</td>
+                                    <td class="text-right tabular-nums">{{ \App\Support\ScoreScale::format($row['per_criterion'][$criterion->id]) }}</td>
                                 @endforeach
-                                <td class="text-right tabular-nums font-semibold">{{ $row['weighted'] ?? '–' }}</td>
+                                <td class="text-right tabular-nums font-semibold">{{ \App\Support\ScoreScale::format($row['weighted']) }}</td>
                                 <td class="text-right tabular-nums">{{ $row['raters'] }}</td>
                                 <td class="whitespace-nowrap">
                                     {{ rupiah($row['candidate']->expected_salary) }}
