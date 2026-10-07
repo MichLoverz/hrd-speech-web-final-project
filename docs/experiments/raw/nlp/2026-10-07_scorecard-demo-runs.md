@@ -179,3 +179,30 @@ Ringkasan: Kandidat menunjukkan pemahaman teknis yang kuat dalam pengembangan ba
 Kutipan: exact 4 · normalized 0 · fuzzy 0 · similar 0 · none 0 · dibuang 0 · pindah jawaban 0
 Model gemini-3.5-flash · token in 1197 / out 845 · 5263 ms · prompt v2
 ```
+
+## Tambahan: `gemini-3.5-flash-lite`, prompt v2
+
+Dijalankan karena kuota `gemini-3.5-flash` habis. Hasil: **7,5 / 7,5 / tidak ada bukti / 5**, 3 kutipan exact (satu per kriteria, lebih sedikit dari `flash` yang memberi 4), 3,1 detik, 650 token keluar. Format JSON dan aturan kutipan tetap dipatuhi. Dibanding `flash` (8,5 / 7,5 / – / 5), hanya Pengalaman teknis yang berbeda (satu langkah 1 poin). Satu run, jadi kestabilannya belum diketahui.
+
+**Soal kuota (koreksi):** pada 2026-10-07 pukul 09.17 WIB, kuota `flash` masih habis walaupun aplikasi tidak membuat satu permintaan pun sejak 04.30 WIB. Padahal `retryDelay` pukul 04.30 menunjuk ke 07.00 WIB (tengah malam UTC). Jadi tidak ada reset pada jam itu. Dugaan: hitungan harian memakai waktu Pasifik (reset ±14.00 WIB), sementara `retryDelay` dihitung sampai tengah malam UTC. Belum dibuktikan; akan dicek dengan `llm:ping` setelah 14.00 WIB.
+
+```
+Sesi #5 · DATA UJI · kondisi full
+
+Ringkasan: Kandidat menjelaskan pengalaman migrasi database dan optimasi query menggunakan Laravel dan PostgreSQL dengan cukup baik. Kandidat juga menunjukkan pemahaman teknis dalam menangani bug sulit seperti race condition dan menyikapi code review secara terbuka.
+
+■ Pengalaman teknis: 7,5/10
+  Kandidat memberikan contoh konkret mengenai migrasi database dan langkah-langkah optimasi query yang lambat menggunakan index, eager loading, serta caching.
+  [exact] Saya cek slow query log dan jalankan explain untuk apakah query-nya melakukan full table scan
+■ Pemecahan masalah: 7,5/10
+  Kandidat mampu mendiagnosis bug sulit berupa race condition dengan menggunakan structured logging dan analisis timestamp.
+  [exact] Saya menemukannya dengan nambahkan Structure Logging lalu membandingkan timestamp dari dua worker
+■ Komunikasi: tidak ada bukti
+  Tidak ada jawaban yang membahas atau memberikan bukti terkait penjelasan API kepada orang non-teknis.
+■ Kerja tim: 5/10
+  Kandidat menunjukkan sikap terbuka terhadap masukan dalam code review meskipun penjelasan transkrip pada bagian ini agak kurang jelas.
+  [exact] kalau 4nya bisa ditabar, bisa bisa ditanyain 2-3nya karena sering kali refiur mulia
+
+Kutipan: exact 3 · normalized 0 · fuzzy 0 · similar 0 · none 0 · dibuang 0 · pindah jawaban 0
+Model gemini-3.5-flash-lite · token in 1197 / out 650 · 3064 ms · prompt v2
+```
