@@ -7,11 +7,11 @@ web/        Laravel — aplikasi utama
 services/   Python FastAPI — ASR real-time (/asr) + embedding NLP (/nlp)     [Fase 2, 4]
 tools/      skrip evaluasi: wer_eval.py, latency_report.py, scorecard_eval.py [Fase 6]
 docs/
-  brief/            brief proyek + form ketentuan mata kuliah
+  brief/            brief proyek (form mata kuliah .docx hanya lokal, tidak di-commit)
   decisions/        ADR-001..004
   devlog/           catatan harian
   experiments/      raw/ (CSV, log) dan results/ (tabel jadi)
-  screenshots/      bukti tiap fase
+  screenshots/      bukti tiap fase (hanya lokal, tidak di-commit)
   user-testing/     kuesioner + responses/
   web-programming/  erd, routes, models, request-flow, install, folder-structure (berkas ini)
   ai-usage-log.md

@@ -25,3 +25,14 @@ Thumbs.db
 
 # Venture Creation prototype-testing interview transcripts (participant names/voices)
 docs/user-testing/prototype-interviews/
+
+# Non-code files stay local: course material, office documents, screenshots
+/contoh/
+docs/screenshots/
+*.pdf
+*.doc
+*.docx
+*.ppt
+*.pptx
+*.xls
+*.xlsx
