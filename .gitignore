@@ -22,3 +22,6 @@ docs/user-testing/responses/audio/
 Thumbs.db
 /.idea
 /.vscode
+
+# Venture Creation prototype-testing interview transcripts (participant names/voices)
+docs/user-testing/prototype-interviews/
