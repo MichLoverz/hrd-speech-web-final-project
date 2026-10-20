@@ -233,6 +233,35 @@
         @apply border-pencil-light;
     }
 
+    /* Plans page: columns separated by rules, the featured one by an ink rule. */
+    .plan {
+        @apply flex flex-col md:px-6 md:border-l md:border-rule;
+    }
+
+    .plan:first-child {
+        @apply md:pl-0 md:border-l-0;
+    }
+
+    .plan-featured {
+        @apply md:border-l-2 md:border-ink;
+    }
+
+    .plan-facts > div {
+        @apply flex justify-between gap-3 py-2 border-t border-rule text-sm;
+    }
+
+    .plan-facts dt {
+        @apply text-ink-soft;
+    }
+
+    .plan-facts dd {
+        @apply text-right;
+    }
+
+    .plan > button {
+        @apply mt-auto;
+    }
+
     /* Flash message after an action. */
     .notice {
         @apply px-4 py-3 border border-ink bg-sheet text-sm;

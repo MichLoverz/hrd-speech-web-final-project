@@ -3,6 +3,7 @@
         ['route' => 'job-openings.index', 'label' => 'Lowongan', 'active' => 'job-openings.*'],
         ['route' => 'candidates.index', 'label' => 'Kandidat', 'active' => 'candidates.*'],
         ['route' => 'interview-sessions.index', 'label' => 'Sesi wawancara', 'active' => 'interview-sessions.*'],
+        ['route' => 'plans.index', 'label' => 'Paket', 'active' => 'plans.*'],
     ];
     if (Auth::user()->isAdmin()) {
         $links[] = ['route' => 'admin.users.index', 'label' => 'Pengguna', 'active' => 'admin.users.*'];

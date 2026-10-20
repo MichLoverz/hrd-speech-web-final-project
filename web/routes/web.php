@@ -19,6 +19,9 @@ Route::get('/', fn () => redirect()->route('job-openings.index'));
 Route::get('/dashboard', fn () => redirect()->route('job-openings.index'))->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    // Plans page: display only, draft prices (config/plans.php).
+    Route::view('/paket', 'plans.index')->name('plans.index');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
