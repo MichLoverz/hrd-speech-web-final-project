@@ -211,6 +211,28 @@
         -webkit-box-decoration-break: clone;
     }
 
+    /* AI scorecard: one ruled block per criterion, small caps section labels,
+       quotes set off by an ink rule (pencil rule when they support a weakness). */
+    .scorecard-item {
+        @apply border-t border-rule pt-6 pb-8 scroll-mt-6;
+    }
+
+    .scorecard-item:first-child {
+        @apply border-ink;
+    }
+
+    .scorecard-label {
+        @apply text-xs font-semibold uppercase tracking-wider text-ink-soft;
+    }
+
+    .scorecard-quote {
+        @apply text-sm border-l-2 border-ink pl-3;
+    }
+
+    .scorecard-quote-weak {
+        @apply border-pencil-light;
+    }
+
     /* Flash message after an action. */
     .notice {
         @apply px-4 py-3 border border-ink bg-sheet text-sm;

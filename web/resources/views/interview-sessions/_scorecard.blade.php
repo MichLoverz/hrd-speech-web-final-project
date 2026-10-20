@@ -47,44 +47,86 @@
     @elseif (! $canSeeAi)
         <div class="empty">Kartu skor AI sudah ada. Kirim penilaian Anda di atas dulu, supaya penilaian manusia tidak terpengaruh draf AI.</div>
     @else
+        @php
+            $sortedScores = $result->scores->sortBy(fn ($s) => $s->criterion->id);
+            $weighted = $result->weightedScore();
+        @endphp
+
+        {{-- Overview first: the whole draft at a glance, details below. --}}
         @if ($result->overall_summary)
-            <p class="max-w-prose mb-6">{{ $result->overall_summary }}</p>
+            <p class="scorecard-label">Ringkasan</p>
+            <p class="max-w-prose mt-1">{{ $result->overall_summary }}</p>
         @endif
 
-        <div class="space-y-8">
-            @foreach ($result->scores->sortBy(fn ($s) => $s->criterion->id) as $score)
-                <div>
-                    <div class="flex flex-wrap items-baseline justify-between gap-2">
-                        <span class="font-semibold">{{ $score->criterion->name }} <span class="text-sm text-pencil font-normal">×{{ $score->criterion->weight }}</span></span>
+        <table class="ledger mt-6 max-w-prose">
+            <thead>
+                <tr><th>Kriteria</th><th class="text-right">Bobot</th><th class="text-right">Skor</th></tr>
+            </thead>
+            <tbody>
+                @foreach ($sortedScores as $score)
+                    <tr>
+                        <td><a href="#kriteria-{{ $score->criterion->id }}">{{ $score->criterion->name }}</a></td>
+                        <td class="text-right tabular-nums text-pencil">×{{ $score->criterion->weight }}</td>
+                        <td class="text-right tabular-nums">
+                            @if ($score->score !== null)
+                                <span class="font-semibold">{{ \App\Support\ScoreScale::format($score->score) }}</span><span class="text-pencil">/10</span>
+                            @else
+                                <span class="text-sm text-pencil">tidak dinilai</span>
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2" class="pt-3 font-semibold border-t border-ink">Rata-rata berbobot <span class="font-normal text-pencil text-sm">(kriteria yang dinilai)</span></td>
+                    <td class="pt-3 text-right tabular-nums border-t border-ink"><span class="text-lg font-semibold">{{ \App\Support\ScoreScale::format($weighted) }}</span><span class="text-pencil">/10</span></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="mt-10">
+            @foreach ($sortedScores as $score)
+                <section class="scorecard-item" id="kriteria-{{ $score->criterion->id }}">
+                    <div class="flex flex-wrap items-baseline justify-between gap-2 max-w-prose">
+                        <h3>{{ $score->criterion->name }} <span class="text-sm text-pencil font-normal">×{{ $score->criterion->weight }}</span></h3>
                         @if ($score->score !== null)
-                            <span class="tabular-nums"><span class="text-lg font-semibold">{{ \App\Support\ScoreScale::format($score->score) }}</span><span class="text-pencil">/10</span></span>
+                            <span class="tabular-nums"><span class="text-xl font-semibold">{{ \App\Support\ScoreScale::format($score->score) }}</span><span class="text-pencil">/10</span></span>
                         @else
                             <span class="text-sm text-pencil">tidak ada bukti — tidak dinilai</span>
                         @endif
                     </div>
                     @if ($score->rationale)
-                        <p class="text-sm text-ink-soft max-w-prose mt-1">{{ $score->rationale }}</p>
+                        <p class="text-sm text-ink-soft max-w-prose mt-2">{{ $score->rationale }}</p>
                     @endif
 
-                    @foreach (['strengths' => 'Kekuatan', 'weaknesses' => 'Kelemahan'] as $field => $label)
-                        @if (! empty($score->$field))
-                            <p class="text-sm font-semibold mt-3">{{ $label }}</p>
-                            <ul class="list-disc pl-5 text-sm max-w-prose">
-                                @foreach ($score->$field as $point)
-                                    <li>{{ $point }}</li>
-                                @endforeach
-                            </ul>
-                        @endif
-                    @endforeach
+                    @if (! empty($score->strengths) || ! empty($score->weaknesses))
+                        <div class="grid gap-x-8 gap-y-4 sm:grid-cols-2 mt-5 max-w-prose">
+                            @foreach (['strengths' => 'Kekuatan', 'weaknesses' => 'Kelemahan'] as $field => $label)
+                                <div>
+                                    <p class="scorecard-label">{{ $label }}</p>
+                                    @if (! empty($score->$field))
+                                        <ul class="list-disc pl-5 text-sm mt-1 space-y-1">
+                                            @foreach ($score->$field as $point)
+                                                <li>{{ $point }}</li>
+                                            @endforeach
+                                        </ul>
+                                    @else
+                                        <p class="text-sm text-pencil mt-1">—</p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
 
                     @if ($score->evidenceQuotes->isNotEmpty())
-                        <p class="text-sm font-semibold mt-3">Bukti dari transkrip</p>
-                        <ul class="mt-1 space-y-3 max-w-prose">
+                        <p class="scorecard-label mt-5">Bukti dari transkrip</p>
+                        <ul class="mt-2 space-y-4 max-w-prose">
                             @foreach ($score->evidenceQuotes as $q)
                                 @php [$text, $tone] = $badge[$q->match_method] ?? ['belum dicek', 'status-warn']; @endphp
-                                <li class="text-sm">
+                                <li class="scorecard-quote {{ $q->supports === 'weakness' ? 'scorecard-quote-weak' : '' }}">
                                     <span class="font-transcript {{ $q->is_verified ? 'highlight' : ($q->match_method === 'none' ? 'line-through text-pencil' : '') }}">“{{ $q->quote_text }}”</span>
-                                    <span class="block mt-0.5 text-pencil">
+                                    <span class="block mt-1 text-pencil">
                                         {{ $q->supports === 'weakness' ? 'kelemahan' : 'kekuatan' }}
                                         · {{ $q->answer->question->text ?? 'jawaban #'.$q->answer_id }}
                                         @if ($mmss($q->start_ms)) · {{ $mmss($q->start_ms) }}–{{ $mmss($q->end_ms) }} @endif
@@ -97,14 +139,11 @@
                             @endforeach
                         </ul>
                     @endif
-                </div>
+                </section>
             @endforeach
         </div>
 
-        @php $weighted = $result->weightedScore(); @endphp
-        <p class="mt-8 font-semibold">Rata-rata berbobot (kriteria yang dinilai): {{ \App\Support\ScoreScale::format($weighted) }}<span class="text-pencil font-normal">/10</span></p>
-
-        <p class="mt-4 text-xs text-pencil">
+        <p class="mt-8 pt-4 border-t border-rule text-xs text-pencil">
             {{ $result->model_used }} via {{ $result->provider }} · prompt {{ $result->prompt_version }} · kondisi {{ $result->condition === 'retrieval' ? 'retrieval' : 'transkrip penuh' }}
             · token {{ $result->prompt_tokens ?? '?' }} masuk / {{ $result->completion_tokens ?? '?' }} keluar
             · {{ number_format($result->llm_latency_ms / 1000, 1, ',', '.') }} s

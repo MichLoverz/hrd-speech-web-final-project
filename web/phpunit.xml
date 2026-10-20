@@ -32,5 +32,9 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <!-- Tests assume the local ASR service, even while web/.env points at a demo tunnel. -->
+        <env name="ASR_HTTP_URL" value="http://127.0.0.1:8765" force="true"/>
+        <env name="ASR_WS_URL" value="ws://127.0.0.1:8765/asr/stream" force="true"/>
+        <env name="ASR_PUBLIC_HTTP_URL" value="http://127.0.0.1:8765" force="true"/>
     </php>
 </phpunit>
