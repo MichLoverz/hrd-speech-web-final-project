@@ -46,7 +46,7 @@ class LiveInterviewController extends Controller
             'lastSeq' => $lastSeq,
             'asr' => [
                 'ws' => config('services.asr.ws'),
-                'http' => config('services.asr.http'),
+                'http' => config('services.asr.public_http'),
                 'use_prompt' => config('services.asr.use_prompt'),
                 'language' => 'id',
                 'trigger_phrases' => config('services.asr.trigger_phrases'),

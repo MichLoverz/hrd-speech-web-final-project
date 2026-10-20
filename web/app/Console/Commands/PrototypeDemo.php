@@ -17,7 +17,8 @@ use Illuminate\Support\Facades\DB;
  */
 class PrototypeDemo extends Command
 {
-    protected $signature = 'hirenote:prototype-demo';
+    protected $signature = 'hirenote:prototype-demo
+                            {--single : Only the first question, for a very short live demo}';
 
     protected $description = 'Create (or reset) the two-question demo opening and a draft test session for a live prototype demo';
 
@@ -46,7 +47,9 @@ class PrototypeDemo extends Command
             return self::FAILURE;
         }
 
-        $session = DB::transaction(function () use ($hrd) {
+        $questions = $this->option('single') ? array_slice(self::QUESTIONS, 0, 1, true) : self::QUESTIONS;
+
+        $session = DB::transaction(function () use ($hrd, $questions) {
             // Sessions first: their answers block deleting questions.
             JobOpening::where('title', self::OPENING)->get()->each(function (JobOpening $opening) {
                 $opening->candidates->each(fn ($c) => $c->interviewSessions()->each(fn ($s) => $s->delete()));
@@ -62,7 +65,7 @@ class PrototypeDemo extends Command
                 'status' => 'open',
                 'created_by' => $hrd->id,
             ]);
-            foreach (self::QUESTIONS as $name => $spec) {
+            foreach ($questions as $name => $spec) {
                 $opening->criteria()->create(['name' => $name, 'weight' => $spec['weight'], 'description' => $spec['description']])
                     ->questions()->create(['text' => $spec['question'], 'position' => 1]);
             }

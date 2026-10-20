@@ -33,6 +33,9 @@ return [
     'asr' => [
         'http' => env('ASR_HTTP_URL', 'http://127.0.0.1:8765'),
         'ws' => env('ASR_WS_URL', 'ws://127.0.0.1:8765/asr/stream'),
+        // Base URL the browser uses for /health. Differs from `http` only behind a tunnel,
+        // where Laravel still reaches the service on 127.0.0.1 but the browser cannot.
+        'public_http' => env('ASR_PUBLIC_HTTP_URL', env('ASR_HTTP_URL', 'http://127.0.0.1:8765')),
         // Send the question text as Whisper's initial_prompt (contextual biasing). Switchable for experiments.
         'use_prompt' => (bool) env('ASR_USE_PROMPT', true),
         'timeout' => (int) env('ASR_HTTP_TIMEOUT', 300),

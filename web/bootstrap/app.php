@@ -11,6 +11,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Behind the demo tunnel (docs/demo-tunnel.md) Caddy forwards from loopback: trust its
+        // X-Forwarded-* headers so Laravel builds https:// URLs. Only a local process can be a proxy,
+        // and env() is not loaded yet at this point, so this is not configurable.
+        $middleware->trustProxies(at: ['127.0.0.1', '::1']);
+
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
         ]);

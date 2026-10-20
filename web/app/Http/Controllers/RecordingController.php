@@ -90,7 +90,7 @@ class RecordingController extends Controller
             'questions' => $questions,
             'asr' => [
                 'ws' => config('services.asr.ws'),
-                'http' => config('services.asr.http'),
+                'http' => config('services.asr.public_http'),
                 'use_prompt' => config('services.asr.use_prompt'),
                 'language' => 'id',
             ],

@@ -1,0 +1,21 @@
+# Demo over an ngrok tunnel (docs/demo-tunnel.md).
+# The free ngrok domain is a single origin, so Caddy splits it locally:
+#   ngrok -> :8080 -> ASR service (8765) for the browser's two endpoints, Laravel (8000) for the rest.
+# Only /asr/stream and /health are exposed; /asr/transcribe and /nlp/embed stay local (Laravel calls them on 127.0.0.1).
+{
+	admin off
+	servers {
+		# The ngrok agent connects from 127.0.0.1: keep its X-Forwarded-Proto: https instead of overwriting it with http.
+		trusted_proxies static private_ranges
+	}
+}
+
+:8080 {
+	@asr path /asr/stream /health
+	handle @asr {
+		reverse_proxy 127.0.0.1:8765
+	}
+	handle {
+		reverse_proxy 127.0.0.1:8000
+	}
+}
