@@ -34,11 +34,13 @@ Angka yang salah tetap salah: *delapan juta* → *80 juta* menjadi 8000000 vs 80
 
 Situs statis (HTML/JS biasa, tanpa build, tanpa backend). Pembicara membaca satu blok kalimat dari `kalimat.tsv`; tiap rekaman disimpan di browser mereka (IndexedDB) sebagai **WAV 16 kHz mono 16-bit** beserta teks yang tampil di layar. Tombol **Unduh semua (ZIP)** menghasilkan:
 
-- `KODE_ID.wav`, satu per kalimat (mis. `P03_L2-014.wav`)
+- `nama_ID.wav`, satu per kalimat (mis. `budi-santoso_L2-014.wav`; nama dijadikan huruf kecil ASCII dengan tanda hubung)
 - `transkrip.tsv`: label (`teks`), durasi, level, jumlah percobaan, dan `teks_sama_dengan_terkini` (`tidak` berarti kalimatnya diubah setelah direkam, jadi rekaman perlu diulang atau labelnya dicek)
-- `pembicara.json`: kode, blok, jenis kelamin, daerah/logat, mic, ruangan, waktu persetujuan, dan pemrosesan mic yang benar-benar diterapkan browser
+- `pembicara.json`: nama, blok, jenis kelamin, daerah/logat, mic, ruangan, waktu persetujuan, dan pemrosesan mic yang benar-benar diterapkan browser
 
-**Tautan per pembicara:** `https://<domain>/?kode=P03&blok=L2`. Kode dan blok dari tautan dikunci di formulir. Pembagian yang disepakati: 8 pembicara latih, tiap blok L1–L4 dibaca 2 orang, dan 2 pembicara uji membaca blok U. Contohnya P01–P02 → L1, P03–P04 → L2, P05–P06 → L3, P07–P08 → L4, P09–P10 → U. Simpan daftar kode → nama **di luar repo**.
+**Tautan per blok:** `https://<domain>/?blok=L2`. Blok dari tautan dikunci di formulir; pembicara mengisi namanya sendiri. Pembagian yang disepakati: 8 pembicara latih, tiap blok L1–L4 dibaca 2 orang, dan 2 pembicara uji membaca blok U. Orang yang membaca U tidak boleh membaca blok L mana pun.
+
+**Nama, bukan kode** (keputusan 2026-11-18): para pembicara adalah teman kelompok sendiri, dan daftar kode→nama dianggap merepotkan. Konsekuensinya, nama ada di nama file dan `pembicara.json`. Persetujuan menjanjikan nama diganti kode di laporan, jadi samarkan nama sebelum dataset atau contohnya dibagikan.
 
 **Konvensi label** (disepakati 2026-10-27 dan 2026-11-17):
 - Istilah Inggris memakai ejaan Inggris (`query`, bukan `kueri`); angka ditulis sebagai digit (`8 juta`), tetapi dibaca biasa.
@@ -46,7 +48,7 @@ Situs statis (HTML/JS biasa, tanpa build, tanpa backend). Pembicara membaca satu
 
 **Pemrosesan mic** sama dengan perekam HireNote (`echoCancellation`, `noiseSuppression`, `autoGainControl` aktif), supaya data latih terdengar seperti audio yang nanti diterima model di aplikasi. Audio direkam pada laju asli browser, lalu di-resample ke 16 kHz dengan `OfflineAudioContext` (band-limited, tanpa aliasing). Ada 0,3 s pre-roll dan 0,35 s ekor supaya suku kata awal dan akhir tidak terpotong.
 
-**Coba lokal:** `py -3.12 -m http.server 8099 --bind 127.0.0.1` dari folder `tools/recorder`, lalu buka `http://localhost:8099/?kode=P99&blok=L1`. Mikrofon hanya jalan di `localhost` atau HTTPS.
+**Coba lokal:** `py -3.12 -m http.server 8099 --bind 127.0.0.1` dari folder `tools/recorder`, lalu buka `http://localhost:8099/?blok=L1`. Mikrofon hanya jalan di `localhost` atau HTTPS.
 
 **Deploy ke Vercel:** folder ini dipublikasikan sebagai repo terpisah [MichLoverz/speech-recognition-data-gathering](https://github.com/MichLoverz/speech-recognition-data-gathering), dengan isi folder sebagai root. Di Vercel, impor repo itu dengan Framework Preset *Other* dan tanpa build command. Ubah kodenya di sini, lalu perbarui repo itu:
 
@@ -55,7 +57,7 @@ git subtree split --prefix=tools/recorder -b recorder-publish
 git push data-gathering recorder-publish:main
 ```
 
-**Menyimpan ZIP yang masuk:** ekstrak ke `services/data/rekaman/<KODE>/`. Folder `services/data/` sudah di-gitignore. Audio peserta tidak boleh masuk git.
+**Menyimpan ZIP yang masuk:** ekstrak ke `services/data/rekaman/<nama>/`. Folder `services/data/` sudah di-gitignore. Audio peserta tidak boleh masuk git.
 
 ## `latency_report.py`
 
