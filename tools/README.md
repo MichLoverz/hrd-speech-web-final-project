@@ -48,7 +48,12 @@ Situs statis (HTML/JS biasa, tanpa build, tanpa backend). Pembicara membaca satu
 
 **Coba lokal:** `py -3.12 -m http.server 8099 --bind 127.0.0.1` dari folder `tools/recorder`, lalu buka `http://localhost:8099/?kode=P99&blok=L1`. Mikrofon hanya jalan di `localhost` atau HTTPS.
 
-**Deploy ke Vercel:** Add New → Project → impor repo ini → **Root Directory `tools/recorder`**, Framework Preset *Other*, build command dikosongkan → Deploy. Bisa juga lewat CLI: `npx vercel` dari folder `tools/recorder`.
+**Deploy ke Vercel:** folder ini dipublikasikan sebagai repo terpisah [MichLoverz/speech-recognition-data-gathering](https://github.com/MichLoverz/speech-recognition-data-gathering), dengan isi folder sebagai root. Di Vercel, impor repo itu dengan Framework Preset *Other* dan tanpa build command. Ubah kodenya di sini, lalu perbarui repo itu:
+
+```
+git subtree split --prefix=tools/recorder -b recorder-publish
+git push data-gathering recorder-publish:main
+```
 
 **Menyimpan ZIP yang masuk:** ekstrak ke `services/data/rekaman/<KODE>/`. Folder `services/data/` sudah di-gitignore. Audio peserta tidak boleh masuk git.
 
